@@ -1,0 +1,27 @@
+# Docker Compose file with all three services: orchestratorwebapp, agentservice, and orchestratorservice
+
+services:
+  orchestratorwebapp:
+    image: orchestratorwebapp
+    build:
+      context: .
+      dockerfile: OrchestratorWebApp/Dockerfile
+    ports:
+      - 5264:5264
+      - 7119:7119
+
+  agentservice:
+    image: agentservice
+    build:
+      context: .
+      dockerfile: AgentService/Dockerfile
+    ports:
+      - 5001:5001
+
+  orchestratorservice:
+    image: orchestratorservice
+    build:
+      context: .
+      dockerfile: OrchestratorService/Dockerfile
+    ports:
+      - 5002:5002

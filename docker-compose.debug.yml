@@ -1,0 +1,44 @@
+# Docker Compose debug file with all three services: orchestratorwebapp, agentservice, and orchestratorservice
+
+services:
+  orchestratorwebapp:
+    image: orchestratorwebapp
+    build:
+      context: .
+      dockerfile: OrchestratorWebApp/Dockerfile
+      args:
+        - configuration=Debug
+    ports:
+      - 5264:5264
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    volumes:
+      - ~/.vsdbg:/remote_debugger:rw
+
+  agentservice:
+    image: agentservice
+    build:
+      context: .
+      dockerfile: AgentService/Dockerfile
+      args:
+        - configuration=Debug
+    ports:
+      - 5001:5001
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    volumes:
+      - ~/.vsdbg:/remote_debugger:rw
+
+  orchestratorservice:
+    image: orchestratorservice
+    build:
+      context: .
+      dockerfile: OrchestratorService/Dockerfile
+      args:
+        - configuration=Debug
+    ports:
+      - 5002:5002
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    volumes:
+      - ~/.vsdbg:/remote_debugger:rw
