@@ -1,0 +1,82 @@
+[
+  {
+    "Name": "Https w/o Debugging",
+    "Projects": [
+      {
+        "Path": "AgentService\\AgentService.csproj",
+        "Action": "StartWithoutDebugging",
+        "DebugTarget": "https"
+      },
+      {
+        "Path": "OrchestratorService\\OrchestratorService.csproj",
+        "Action": "StartWithoutDebugging",
+        "DebugTarget": "https"
+      },
+      {
+        "Path": "OrchestratorWebApp\\OrchestratorWebApp.csproj",
+        "Action": "StartWithoutDebugging",
+        "DebugTarget": "https"
+      }
+    ]
+  },
+  {
+    "Name": "WSL w/o Debugging",
+    "Projects": [
+      {
+        "Path": "AgentService\\AgentService.csproj",
+        "Action": "StartWithoutDebugging",
+        "DebugTarget": "WSL"
+      },
+      {
+        "Path": "OrchestratorService\\OrchestratorService.csproj",
+        "Action": "StartWithoutDebugging",
+        "DebugTarget": "WSL"
+      },
+      {
+        "Path": "OrchestratorWebApp\\OrchestratorWebApp.csproj",
+        "Action": "StartWithoutDebugging",
+        "DebugTarget": "WSL"
+      }
+    ]
+  },
+  {
+    "Name": "Https - Debugging",
+    "Projects": [
+      {
+        "Path": "AgentService\\AgentService.csproj",
+        "Action": "StartWithoutDebugging",
+        "DebugTarget": "https"
+      },
+      {
+        "Path": "OrchestratorService\\OrchestratorService.csproj",
+        "Action": "StartWithoutDebugging",
+        "DebugTarget": "https"
+      },
+      {
+        "Path": "OrchestratorWebApp\\OrchestratorWebApp.csproj",
+        "Action": "StartWithoutDebugging",
+        "DebugTarget": "https"
+      }
+    ]
+  },
+  {
+    "Name": "WSL - Debugging",
+    "Projects": [
+      {
+        "Path": "AgentService\\AgentService.csproj",
+        "Action": "Start",
+        "DebugTarget": "WSL"
+      },
+      {
+        "Path": "OrchestratorService\\OrchestratorService.csproj",
+        "Action": "Start",
+        "DebugTarget": "WSL"
+      },
+      {
+        "Path": "OrchestratorWebApp\\OrchestratorWebApp.csproj",
+        "Action": "Start",
+        "DebugTarget": "WSL"
+      }
+    ]
+  }
+]
