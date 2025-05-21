@@ -9,11 +9,13 @@ on:
 
 permissions:
   contents: read
-  
+
 jobs:
   prebuild:
     permissions:
+      contents: read
       packages: write
+      
     runs-on: ubuntu-22.04
     steps:
         
