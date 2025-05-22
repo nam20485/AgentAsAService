@@ -6,16 +6,12 @@ on:
     branches:
       - main
       - development
-
-permissions:
-  contents: read
-
 jobs:
   prebuild:
     permissions:
       contents: read
       packages: write
-      
+
     runs-on: ubuntu-22.04
     steps:
         
@@ -32,6 +28,6 @@ jobs:
       - name: Pre-build dev container image
         uses: devcontainers/ci@v0.3
         with:
-          imageName: ghcr.io/nam20485/agentaasaservice/devcontainer:latest
-          cacheFrom: ghcr.io/nam20485/agentaasaservice/devcontainer:latest
+          imageName: ghcr.io/nam20485/agentasaservice
+          cacheFrom: ghcr.io/nam20485/agentasaservice
           push: always
