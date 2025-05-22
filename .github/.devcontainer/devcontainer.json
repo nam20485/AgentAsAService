@@ -9,7 +9,7 @@
 	"features": {
 		"ghcr.io/devcontainers/features/github-cli:1": {},
 		"ghcr.io/devcontainers/features/node:1" : {},
-		"ghcr.io/devcontainers/features/docker-in-docker:2": {},
+		//"ghcr.io/devcontainers/features/docker-in-docker:2": {},
 		"ghcr.io/devcontainers/features/sshd:1": {},
 		"ghcr.io/dhoeric/features/google-cloud-cli:1": {},
 		"ghcr.io/devcontainers-extra/features/firebase-cli:2": {}
@@ -60,8 +60,8 @@
 	},
 
 	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
-	"remoteUser": "vscode",
-	"containerUser": "vscode"
+	// "remoteUser": "vscode",
+	// "containerUser": "vscode"
 	
 	//"updateRemoteUserUID": 
 }
