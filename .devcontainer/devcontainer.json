@@ -1,5 +1,16 @@
-// For format details, see https://aka.ms/devcontainer.json. For config options, see the
-// README at: https://github.com/devcontainers/templates/tree/main/src/dotnet
+//
+// Actual devcontainer configuration.
+//
+// Empty except for reference to the prebuilt "base" container image. 
+// This optimizes the devcontainer instance creation time (as well as separates the concerns of running from its configuration/building).
+// Base image:
+//  - config: ../.github/.devcontainer/devcontainer.json
+//  - built: ../.github/workflows/prebuild.yml
+//
+
+// WARNING!: repo is currently PRIVATE, so the prebuilt image is not available unless logged in w/ an approriately-permissioned PAT.
+// If you would like to use this image, please reach out and I can provide you with access.
+
 {
     "name": "agentasaservice",
     // Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
