@@ -53,8 +53,9 @@
 			   "googlecloudtools.cloudcode",
 			   "hbenl.vscode-test-explorer",
 			   "ms-dotnettools.dotnet-maui",
-			   "ms-vscode.powershell",
-			//   "unoplatform.vscode"
+			   "ms-vscode.powershell",			
+			//    "pspester.pester-test",
+			//    "unoplatform.vscode"
 		   ]
 		}
 	},
