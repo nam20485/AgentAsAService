@@ -1,0 +1,48 @@
+# cloudbuild.yaml
+
+# This file defines the steps for Cloud Build to build and tag your Docker images
+# for OrchestratorWebApp, OrchestratorService, and AgentService.
+
+steps:
+# Step 1: Build the OrchestratorWebApp Docker image
+- name: 'gcr.io/cloud-builders/docker'
+  args: [
+    'build',
+    '-t',
+    'us-west1-docker.pkg.dev/agent-as-a-service-459620/agent-as-a-service/orchestratorwebapp:latest', # Tag for OrchestratorWebApp
+    '.', # Docker build context relative to 'dir' (which is OrchestratorWebApp)
+    '-f',
+    'OrchestratorWebApp/Dockerfile', # Dockerfile path relative to 'dir'
+  ]  
+
+# Step 2: Build the OrchestratorService Docker image
+- name: 'gcr.io/cloud-builders/docker'
+  args: [
+    'build',
+    '-t',
+    'us-west1-docker.pkg.dev/agent-as-a-service-459620/agent-as-a-service/orchestratorservice:latest', # Tag for OrchestratorService
+    '.', # Docker build context relative to 'dir'
+    '-f',
+    'OrchestratorService/Dockerfile', 
+  ]  
+  # By default, steps run sequentially. This step will wait for Step 1 to finish.
+
+# Step 3: Build the AgentService Docker image
+- name: 'gcr.io/cloud-builders/docker'
+  args: [
+    'build',
+    '-t',
+    'us-west1-docker.pkg.dev/agent-as-a-service-459620/agent-as-a-service/agentservice:latest', # Tag for AgentService
+    '.', # Docker build context relative to 'dir'
+    '-f',
+    'AgentService/Dockerfile',
+  ]  
+  # This step will wait for Step 2 to finish.
+
+# This section tells Cloud Build which images to push to Artifact Registry
+images:
+- 'us-west1-docker.pkg.dev/agent-as-a-service-459620/agent-as-a-service/orchestratorwebapp:latest'
+- 'us-west1-docker.pkg.dev/agent-as-a-service-459620/agent-as-a-service/orchestratorservice:latest'
+- 'us-west1-docker.pkg.dev/agent-as-a-service-459620/agent-as-a-service/agentservice:latest'
+
+ 
