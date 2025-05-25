@@ -7,6 +7,8 @@ EXPOSE 443
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 COPY ["OrchestratorWebApp/OrchestratorWebApp.csproj", "OrchestratorWebApp/"]
+# Restore the WebAssembly workload
+RUN dotnet workload restore "OrchestratorWebApp/OrchestratorWebApp.csproj"
 RUN dotnet restore "OrchestratorWebApp/OrchestratorWebApp.csproj"
 COPY . .
 WORKDIR "/src/OrchestratorWebApp"
