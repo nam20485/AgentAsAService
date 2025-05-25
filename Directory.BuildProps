@@ -1,0 +1,11 @@
+<Project>
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+  
+  <!-- Enable browser-wasm as a workload for projects that need it -->
+  <PropertyGroup Condition="'$(ProjectName)' == 'OrchestratorWebApp'">
+    <_WasmDependenciesDir>$(MSBuildThisFileDirectory).wasm\</_WasmDependenciesDir>
+    <WasmBuildNative>true</WasmBuildNative>
+  </PropertyGroup>
+</Project>
