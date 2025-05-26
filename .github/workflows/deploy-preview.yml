@@ -1,0 +1,58 @@
+# name: Deploy to Preview Channel
+
+# on:
+#   pull_request:
+#     # Optionally configure to run only for specific files. For example:
+#     # paths:
+#     # - "website/**"
+
+# jobs:
+#   build_and_preview:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - uses: actions/checkout@v4
+#       # Add any build steps here. For example:
+#       # - run: npm ci && npm run build
+#       - uses: FirebaseExtended/action-hosting-deploy@v0
+#         with:
+#           repoToken: "${{ secrets.GITHUB_TOKEN }}"
+#           firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}"
+#           expires: 30d
+#           projectId: your-Firebase-project-ID
+
+name: Deploy Preview Channel Frontend (Blazor WASM)
+
+on:
+  pull_request:
+    branches:
+      - master # Trigger this workflow on pull request to the 'master' branch
+
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu-22.04 # or windows-latest if you prefer, adjust dotnet setup
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Step to set up .NET SDK for Blazor build
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '8.0.410' # IMPORTANT: Specify your .NET version
+
+      # Step to build and publish the Blazor WebAssembly app
+      # Paths are relative to the repository root
+      - name: Build and publish Blazor app
+        run: dotnet publish ./OrchestratorWebApp/OrchestratorWebApp.csproj -c Release -o ./OrchestratorWebApp/app/publish
+
+      # Step to deploy to Firebase Hosting (Staging Project)
+      - name: Deploy to Firebase Staging
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:          
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' # Use the secret for staging
+          projectId: 'agent-as-a-service' # IMPORTANT: Specify your Staging Firebase project ID
+          expires: 30d
+          #target: your-staging-hosting-site-id # OPTIONAL: If using multiple sites in staging project
+          #channelId: live # Deploy to the live channel of the staging project
+          entryPoint: './OrchestratorWebApp/app/publish' # Point to the build output directory relative to repo root
