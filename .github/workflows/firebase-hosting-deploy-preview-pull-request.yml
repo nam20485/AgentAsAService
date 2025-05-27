@@ -20,7 +20,9 @@ jobs:
           dotnet-version: '8.0.410'
 
       - name: Build and publish Blazor app
-        run: ./scripts/publish-orchestratorwebapp.ps1
+        run: | 
+          chmod +x ./scripts/publish-orchestratorwebapp.ps1
+          ./scripts/publish-orchestratorwebapp.ps1
 
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
