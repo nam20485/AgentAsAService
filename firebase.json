@@ -5,7 +5,7 @@
     "indexes": "firestore.indexes.json"
   },
   "hosting": {
-    "public": "OrchestratorWebApp/app/publish",
+    "public": "OrchestratorWebApp/publish",
     "ignore": [
       "firebase.json",
       "**/.*",
