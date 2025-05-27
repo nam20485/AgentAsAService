@@ -4,16 +4,16 @@
 # for OrchestratorWebApp, OrchestratorService, and AgentService.
 
 steps:
-# Step 1: Build the OrchestratorWebApp Docker image
-- name: 'gcr.io/cloud-builders/docker'
-  args: [
-    'build',
-    '-t',
-    'us-west1-docker.pkg.dev/agent-as-a-service-459620/agent-as-a-service/orchestratorwebapp:latest', # Tag for OrchestratorWebApp
-    '.', # Docker build context relative to 'dir' (which is OrchestratorWebApp)
-    '-f',
-    'OrchestratorWebApp/Dockerfile', # Dockerfile path relative to 'dir'
-  ]  
+# # Step 1: Build the OrchestratorWebApp Docker image
+# - name: 'gcr.io/cloud-builders/docker'
+#   args: [
+#     'build',
+#     '-t',
+#     'us-west1-docker.pkg.dev/agent-as-a-service-459620/agent-as-a-service/orchestratorwebapp:latest', # Tag for OrchestratorWebApp
+#     '.', # Docker build context relative to 'dir' (which is OrchestratorWebApp)
+#     '-f',
+#     'OrchestratorWebApp/Dockerfile', # Dockerfile path relative to 'dir'
+#   ]  
 
 # Step 2: Build the OrchestratorService Docker image
 - name: 'gcr.io/cloud-builders/docker'
