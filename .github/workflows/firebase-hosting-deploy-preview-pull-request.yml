@@ -13,6 +13,11 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20.x' # Upgrade Node.js to a compatible version for firebase CLI
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v3
