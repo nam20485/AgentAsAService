@@ -28,7 +28,7 @@ jobs:
           dotnet-version: '8.0.410'
 
       - name: Build and publish Blazor app
-        run: dotnet publish ./OrchestratorWebApp/OrchestratorWebApp.csproj -c Release -o ./OrchestratorWebApp/publish
+        run: ./scripts/publish-orchestratorwebapp.ps1
 
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
@@ -36,4 +36,3 @@ jobs:
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_AGENT_AS_A_SERVICE_459620 }}
           channelId: live+
           projectId: agent-as-a-service-459620
-          

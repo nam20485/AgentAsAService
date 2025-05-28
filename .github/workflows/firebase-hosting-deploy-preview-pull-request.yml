@@ -24,8 +24,19 @@ jobs:
         with:
           dotnet-version: '8.0.410'
 
-      - name: Build and publish Blazor app
+      #
+      # OrchestratoreService
+      #
+      - name: Build and publish Orechestrator Service
         run: dotnet publish ./OrchestratorWebApp/OrchestratorWebApp.csproj -c Release -o ./OrchestratorWebApp/publish
+
+      
+
+      #
+      # OrchestratorWebApp
+      #
+      - name: Build and publish Blazor app
+        run: ./scripts/publish-orchestratorwebapp.ps1
 
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
