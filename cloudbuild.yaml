@@ -10,7 +10,9 @@ substitutions:
   _REGION: 'us-west1'
   # _SERVICE_ACCOUNT: 'your-cloud-build-service-account@${_GCP_PROJECT_ID}.iam.gserviceaccount.com' # Optional: if your Cloud Run needs a specific SA
 
-steps:
+serviceAccount: projects/agent-as-a-service-459620/serviceAccounts/101640852106965308653
+
+steps:  
 # # Step 1: OrchestratorWebApp (currently commented out, can be enabled similarly)
 # - name: 'gcr.io/cloud-builders/docker'
 #   id: 'Build OrchestratorWebApp'
@@ -56,7 +58,7 @@ steps:
 
 - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
   id: 'Deploy OrchestratorService'
-  entrypoint: gcloud
+  entrypoint: gcloud  
   args:
     - 'run'
     - 'deploy'
