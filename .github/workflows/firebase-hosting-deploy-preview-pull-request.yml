@@ -24,19 +24,46 @@ jobs:
         with:
           dotnet-version: '8.0.410'
 
-      #
-      # OrchestratoreService
-      #
-      - name: Build and publish Orechestrator Service
-        run: dotnet publish ./OrchestratorWebApp/OrchestratorWebApp.csproj -c Release -o ./OrchestratorWebApp/publish
+      # #
+      # # OrchestratorService
+      # #
+      # - name: Build and publish Orchestrator Service
+      #   run: | 
+      #     chmod +x ./scripts/publish-services.ps1
+      #     ./scripts/publish-services.ps1 OrchestratorService     
 
-      
+      # #
+      # # AgentService
+      # #
+      # - name: Build and publish AgentService Service
+      #   run: | 
+      #     chmod +x ./scripts/publish-services.ps1
+      #     ./scripts/publish-services.ps1 AgentService     
+
+      # # deploy services to cloud run using GH actions
+      # - name: Deploy to Cloud Run (OrchestrastorService)      
+      #   uses: 'google-github-actions/deploy-cloudrun@v2'
+      #   with:
+      #     service: 'orchestratorservice'
+      #     source: ./OrchestratorService
+
+      # # deploy services to cloud run using GH actions
+      # - name: Deploy to Cloud Run (AgentService)      
+      #   uses: 'google-github-actions/deploy-cloudrun@v2'
+      #   with:
+      #     service: 'AgentService'
+      #     source: ./AgentService
+
+      # - name: 'Use output'
+      #   run: 'curl "${{ steps.deploy.outputs.url }}"'
 
       #
       # OrchestratorWebApp
       #
       - name: Build and publish Blazor app
-        run: ./scripts/publish-orchestratorwebapp.ps1
+        run: |
+          chmod +x ./scripts/publish-orchestratorwebapp.ps1
+          ./scripts/publish-orchestratorwebapp.ps1
 
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
