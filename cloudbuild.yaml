@@ -41,7 +41,7 @@ steps:
 
 # This section tells Cloud Build which images to push to Artifact Registry
 images:
-- 'us-west1-docker.pkg.dev/agent-as-a-service-459620/agent-as-a-service/orchestratorwebapp:latest'
+# 'us-west1-docker.pkg.dev/agent-as-a-service-459620/agent-as-a-service/orchestratorwebapp:latest'
 - 'us-west1-docker.pkg.dev/agent-as-a-service-459620/agent-as-a-service/orchestratorservice:latest'
 - 'us-west1-docker.pkg.dev/agent-as-a-service-459620/agent-as-a-service/agentservice:latest'
 
