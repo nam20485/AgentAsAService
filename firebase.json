@@ -13,6 +13,14 @@
     ],
     "rewrites": [
       {
+        "source": "/api",
+        "run": {
+          "serviceId": "orchestratorservice", // "service name" (from when you deployed the container image)
+          "region": "us-west1", // optional (if omitted, default is us-central1)
+          "pinTag": true // optional (see note below)
+        }
+      },
+      {
         "source": "**",
         "destination": "/index.html"
       }
