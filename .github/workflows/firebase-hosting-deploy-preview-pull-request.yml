@@ -25,7 +25,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: '8.0.x' # Using 8.0.x to get the latest patch
+          dotnet-version: '8.0.410' # Using 8.0.x to get the latest patch
 
       - name: Authenticate to Google Cloud
         id: auth
