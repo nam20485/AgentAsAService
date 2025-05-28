@@ -82,3 +82,4 @@ node_modules/
 
 # End of .gitignore
 OrchestratorWebApp/app/
+OrchestratorWebApp/publish/
