@@ -12,7 +12,6 @@ permissions:
   pull-requests: write
 jobs:
   build_and_deploy:
-    if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
@@ -27,8 +26,37 @@ jobs:
         with:
           dotnet-version: '8.0.410'
 
+      - name: Authenticate to Google Cloud
+        uses: 'google-github-actions/auth@v2'
+        with:
+          credentials_json: '${{ secrets.GCP_SA_KEY }}'
+
+      - name: Deploy OrchestratorService to Cloud Run
+        uses: 'google-github-actions/deploy-cloudrun@v2'
+        with:
+          service: 'orchestratorservice' 
+          project_id: 'agent-as-a-service-459620'
+          region: 'us-west1' 
+          source: ./OrchestratorService 
+          # Optional: set environment variables
+          # env_vars: |
+          #   KEY1=VALUE1
+          #   KEY2=VALUE2
+
+      - name: Deploy AgentService to Cloud Run
+        uses: 'google-github-actions/deploy-cloudrun@v2'
+        with:
+          service: 'agentservice' 
+          project_id: 'agent-as-a-service-459620'
+          region: 'us-west1' 
+          source: ./AgentService 
+          # Optional: set environment variables
+          # env_vars: |
+          #   KEY1=VALUE1
+          #   KEY2=VALUE2
+
       - name: Build and publish Blazor app
-        run: ./scripts/publish-orchestratorwebapp.ps1
+        run: ./scripts/publish-orchestratorwebapp.ps1 # Ensure this script is executable: chmod +x ./scripts/publish-orchestratorwebapp.ps1
 
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:

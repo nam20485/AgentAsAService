@@ -27,38 +27,40 @@ jobs:
         with:
           dotnet-version: '8.0.410'
 
-      # #
-      # # OrchestratorService
-      # #
-      # - name: Build and publish Orchestrator Service
-      #   run: | 
-      #     chmod +x ./scripts/publish-services.ps1
-      #     ./scripts/publish-services.ps1 OrchestratorService     
+      - name: Authenticate to Google Cloud
+        uses: 'google-github-actions/auth@v2'
+        with:
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_AGENT_AS_A_SERVICE_459620 }}
 
-      # #
-      # # AgentService
-      # #
-      # - name: Build and publish AgentService Service
-      #   run: | 
-      #     chmod +x ./scripts/publish-services.ps1
-      #     ./scripts/publish-services.ps1 AgentService     
+      #
+      # OrchestratorService
+      #
+      - name: Deploy OrchestratorService to Cloud Run
+        uses: 'google-github-actions/deploy-cloudrun@v2'
+        with:
+          service: 'orchestratorservice' # Ensure this is the desired Cloud Run service name
+          project_id: 'agent-as-a-service-459620' # Your GCP Project ID
+          region: 'us-west1' # Desired region for Cloud Run service
+          source: ./OrchestratorService # Path to the service source and Dockerfile
+          # Optional: set environment variables
+          # env_vars: |
+          #   KEY1=VALUE1
+          #   KEY2=VALUE2
 
-      # # deploy services to cloud run using GH actions
-      # - name: Deploy to Cloud Run (OrchestrastorService)      
-      #   uses: 'google-github-actions/deploy-cloudrun@v2'
-      #   with:
-      #     service: 'orchestratorservice'
-      #     source: ./OrchestratorService
-
-      # # deploy services to cloud run using GH actions
-      # - name: Deploy to Cloud Run (AgentService)      
-      #   uses: 'google-github-actions/deploy-cloudrun@v2'
-      #   with:
-      #     service: 'AgentService'
-      #     source: ./AgentService
-
-      # - name: 'Use output'
-      #   run: 'curl "${{ steps.deploy.outputs.url }}"'
+      #
+      # AgentService
+      #    
+      - name: Deploy AgentService to Cloud Run
+        uses: 'google-github-actions/deploy-cloudrun@v2'
+        with:
+          service: 'agentservice' # Ensure this is the desired Cloud Run service name
+          project_id: 'agent-as-a-service-459620' # Your GCP Project ID
+          region: 'us-west1' # Desired region for Cloud Run service
+          source: ./AgentService # Path to the service source and Dockerfile
+          # Optional: set environment variables
+          # env_vars: |
+          #   KEY1=VALUE1
+          #   KEY2=VALUE2
 
       #
       # OrchestratorWebApp
@@ -73,4 +75,3 @@ jobs:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_AGENT_AS_A_SERVICE_459620 }}
           projectId: agent-as-a-service-459620
-  
