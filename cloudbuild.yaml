@@ -1,48 +1,126 @@
 # cloudbuild.yaml
 
-# This file defines the steps for Cloud Build to build and tag your Docker images
-# for OrchestratorWebApp, OrchestratorService, and AgentService.
+# This file defines the steps for Cloud Build to build, tag, push, and deploy
+# OrchestratorService and AgentService using dynamic tags.
+
+substitutions:
+  _TAG_NAME: 'latest' # Default tag, will be overridden by GitHub Actions
+  _GCP_PROJECT_ID: 'agent-as-a-service-459620'
+  _ARTIFACT_REGISTRY_REPO: 'agent-as-a-service'
+  _REGION: 'us-west1'
+  # _SERVICE_ACCOUNT: 'your-cloud-build-service-account@${_GCP_PROJECT_ID}.iam.gserviceaccount.com' # Optional: if your Cloud Run needs a specific SA
 
 steps:
-# # Step 1: Build the OrchestratorWebApp Docker image
+# # Step 1: OrchestratorWebApp (currently commented out, can be enabled similarly)
 # - name: 'gcr.io/cloud-builders/docker'
+#   id: 'Build OrchestratorWebApp'
 #   args: [
 #     'build',
+#     '-t',agent-as-a
+#     '${_REGION}-docker.pkg.dev/${_GCP_PROJECT_ID}/${_ARTIFACT_REGISTRY_REPO}/orchestratorwebapp:${_TAG_NAME}',
 #     '-t',
-#     'us-west1-docker.pkg.dev/agent-as-a-service-459620/agent-as-a-service/orchestratorwebapp:latest', # Tag for OrchestratorWebApp
-#     '.', # Docker build context relative to 'dir' (which is OrchestratorWebApp)
+#     '${_REGION}-docker.pkg.dev/${_GCP_PROJECT_ID}/${_ARTIFACT_REGISTRY_REPO}/orchestratorwebapp:latest',
+#     '.',
 #     '-f',
-#     'OrchestratorWebApp/Dockerfile', # Dockerfile path relative to 'dir'
-#   ]  
+#     'OrchestratorWebApp/Dockerfile',
+#   ]
+# - name: 'gcr.io/cloud-builders/docker'
+#   id: 'Push OrchestratorWebApp'
+#   args: ['push', '${_REGION}-docker.pkg.dev/${_GCP_PROJECT_ID}/${_ARTIFACT_REGISTRY_REPO}/orchestratorwebapp:${_TAG_NAME}']
+# - name: 'gcr.io/cloud-builders/docker'
+#   id: 'Push OrchestratorWebApp Latest'
+#   args: ['push', '${_REGION}-docker.pkg.dev/${_GCP_PROJECT_ID}/${_ARTIFACT_REGISTRY_REPO}/orchestratorwebapp:latest']
+# # Deployment for OrchestratorWebApp would typically be to Firebase Hosting as per your existing setup, not Cloud Run.
 
-# Step 2: Build the OrchestratorService Docker image
+# Step 2: Build, Push, and Deploy OrchestratorService
 - name: 'gcr.io/cloud-builders/docker'
+  id: 'Build OrchestratorService'
   args: [
     'build',
     '-t',
-    'us-west1-docker.pkg.dev/agent-as-a-service-459620/agent-as-a-service/orchestratorservice:latest', # Tag for OrchestratorService
-    '.', # Docker build context relative to 'dir'
+    '${_REGION}-docker.pkg.dev/${_GCP_PROJECT_ID}/${_ARTIFACT_REGISTRY_REPO}/orchestratorservice:${_TAG_NAME}',
+    '-t', # Also tag as latest
+    '${_REGION}-docker.pkg.dev/${_GCP_PROJECT_ID}/${_ARTIFACT_REGISTRY_REPO}/orchestratorservice:latest',
+    '.', # Build context is the root of the repository
     '-f',
-    'OrchestratorService/Dockerfile', 
-  ]  
-  # By default, steps run sequentially. This step will wait for Step 1 to finish.
+    'OrchestratorService/Dockerfile',
+  ]
 
-# Step 3: Build the AgentService Docker image
 - name: 'gcr.io/cloud-builders/docker'
+  id: 'Push OrchestratorService by Tag'
+  args: ['push', '${_REGION}-docker.pkg.dev/${_GCP_PROJECT_ID}/${_ARTIFACT_REGISTRY_REPO}/orchestratorservice:${_TAG_NAME}']
+
+- name: 'gcr.io/cloud-builders/docker'
+  id: 'Push OrchestratorService Latest'
+  args: ['push', '${_REGION}-docker.pkg.dev/${_GCP_PROJECT_ID}/${_ARTIFACT_REGISTRY_REPO}/orchestratorservice:latest']
+
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  id: 'Deploy OrchestratorService'
+  entrypoint: gcloud
+  args:
+    - 'run'
+    - 'deploy'
+    - 'orchestratorservice' # Corrected service name
+    - '--image'
+    - '${_REGION}-docker.pkg.dev/${_GCP_PROJECT_ID}/${_ARTIFACT_REGISTRY_REPO}/orchestratorservice:${_TAG_NAME}'
+    - '--region'
+    - '${_REGION}'
+    - '--project'
+    - '${_GCP_PROJECT_ID}'
+    - '--platform'
+    - 'managed'
+    # - '--service-account=${_SERVICE_ACCOUNT}' # Optional: if your service needs a specific SA
+    - '--quiet' # Suppresses interactive prompts
+
+# Step 3: Build, Push, and Deploy AgentService
+- name: 'gcr.io/cloud-builders/docker'
+  id: 'Build AgentService'
   args: [
     'build',
     '-t',
-    'us-west1-docker.pkg.dev/agent-as-a-service-459620/agent-as-a-service/agentservice:latest', # Tag for AgentService
-    '.', # Docker build context relative to 'dir'
+    '${_REGION}-docker.pkg.dev/${_GCP_PROJECT_ID}/${_ARTIFACT_REGISTRY_REPO}/agentservice:${_TAG_NAME}',
+    '-t', # Also tag as latest
+    '${_REGION}-docker.pkg.dev/${_GCP_PROJECT_ID}/${_ARTIFACT_REGISTRY_REPO}/agentservice:latest',
+    '.', # Build context is the root of the repository
     '-f',
     'AgentService/Dockerfile',
-  ]  
-  # This step will wait for Step 2 to finish.
+  ]
 
-# This section tells Cloud Build which images to push to Artifact Registry
+- name: 'gcr.io/cloud-builders/docker'
+  id: 'Push AgentService by Tag'
+  args: ['push', '${_REGION}-docker.pkg.dev/${_GCP_PROJECT_ID}/${_ARTIFACT_REGISTRY_REPO}/agentservice:${_TAG_NAME}']
+
+- name: 'gcr.io/cloud-builders/docker'
+  id: 'Push AgentService Latest'
+  args: ['push', '${_REGION}-docker.pkg.dev/${_GCP_PROJECT_ID}/${_ARTIFACT_REGISTRY_REPO}/agentservice:latest']
+
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  id: 'Deploy AgentService'
+  entrypoint: gcloud
+  args:
+    - 'run'
+    - 'deploy'
+    - 'agentservice'
+    - '--image'
+    - '${_REGION}-docker.pkg.dev/${_GCP_PROJECT_ID}/${_ARTIFACT_REGISTRY_REPO}/agentservice:${_TAG_NAME}'
+    - '--region'
+    - '${_REGION}'
+    - '--project'
+    - '${_GCP_PROJECT_ID}'
+    - '--platform'
+    - 'managed'
+    # - '--service-account=${_SERVICE_ACCOUNT}' # Optional
+    - '--quiet'
+
+# This section tells Cloud Build which images to push to Artifact Registry if not explicitly pushed.
+# Since we have explicit push steps, this is mainly for build metadata.
 images:
-# 'us-west1-docker.pkg.dev/agent-as-a-service-459620/agent-as-a-service/orchestratorwebapp:latest'
-- 'us-west1-docker.pkg.dev/agent-as-a-service-459620/agent-as-a-service/orchestratorservice:latest'
-- 'us-west1-docker.pkg.dev/agent-as-a-service-459620/agent-as-a-service/agentservice:latest'
+  - '${_REGION}-docker.pkg.dev/${_GCP_PROJECT_ID}/${_ARTIFACT_REGISTRY_REPO}/orchestratorservice:${_TAG_NAME}'
+  - '${_REGION}-docker.pkg.dev/${_GCP_PROJECT_ID}/${_ARTIFACT_REGISTRY_REPO}/orchestratorservice:latest'
+  - '${_REGION}-docker.pkg.dev/${_GCP_PROJECT_ID}/${_ARTIFACT_REGISTRY_REPO}/agentservice:${_TAG_NAME}'
+  - '${_REGION}-docker.pkg.dev/${_GCP_PROJECT_ID}/${_ARTIFACT_REGISTRY_REPO}/agentservice:latest'
 
- 
+options:
+  logging: CLOUD_LOGGING_ONLY # Send logs to Cloud Logging
+  # machineType: 'E2_HIGHCPU_8' # Optional: Uncomment to specify a faster machine type for Cloud Build
+

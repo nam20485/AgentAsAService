@@ -18,49 +18,28 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '20.x' # Upgrade Node.js to a compatible version for firebase CLI    
-        
+
       - name: Install Firebase CLI
         run: npm install firebase-tools@14.4.0
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: '8.0.410'
+          dotnet-version: '8.0.x' # Using 8.0.x to get the latest patch
 
       - name: Authenticate to Google Cloud
+        id: auth
         uses: 'google-github-actions/auth@v2'
         with:
-          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_AGENT_AS_A_SERVICE_459620 }}
+          credentials_json: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_AGENT_AS_A_SERVICE_459620 }}'
 
-      #
-      # OrchestratorService
-      #
-      - name: Deploy OrchestratorService to Cloud Run
-        uses: 'google-github-actions/deploy-cloudrun@v2'
-        with:
-          service: 'orchestratorservice' # Ensure this is the desired Cloud Run service name
-          project_id: 'agent-as-a-service-459620' # Your GCP Project ID
-          region: 'us-west1' # Desired region for Cloud Run service
-          source: ./OrchestratorService # Path to the service source and Dockerfile
-          # Optional: set environment variables
-          # env_vars: |
-          #   KEY1=VALUE1
-          #   KEY2=VALUE2
+      - name: Set up Cloud SDK
+        uses: 'google-github-actions/setup-gcloud@v2'
 
-      #
-      # AgentService
-      #    
-      - name: Deploy AgentService to Cloud Run
-        uses: 'google-github-actions/deploy-cloudrun@v2'
-        with:
-          service: 'agentservice' # Ensure this is the desired Cloud Run service name
-          project_id: 'agent-as-a-service-459620' # Your GCP Project ID
-          region: 'us-west1' # Desired region for Cloud Run service
-          source: ./AgentService # Path to the service source and Dockerfile
-          # Optional: set environment variables
-          # env_vars: |
-          #   KEY1=VALUE1
-          #   KEY2=VALUE2
+      - name: Submit Cloud Build for Services (Preview)
+        run: |
+          gcloud builds submit --project=${{ steps.auth.outputs.project_id }} --config=cloudbuild.yaml --substitutions=_COMMIT_SHA=${{ github.sha }}
+        working-directory: . # Assuming cloudbuild.yaml is at the root
 
       #
       # OrchestratorWebApp

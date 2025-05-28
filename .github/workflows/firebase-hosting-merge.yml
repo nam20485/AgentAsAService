@@ -24,36 +24,21 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: '8.0.410'
+          dotnet-version: '8.0.x' # Using 8.0.x to get the latest patch
 
       - name: Authenticate to Google Cloud
+        id: auth
         uses: 'google-github-actions/auth@v2'
         with:
           credentials_json: '${{ secrets.GCP_SA_KEY }}'
 
-      - name: Deploy OrchestratorService to Cloud Run
-        uses: 'google-github-actions/deploy-cloudrun@v2'
-        with:
-          service: 'orchestratorservice' 
-          project_id: 'agent-as-a-service-459620'
-          region: 'us-west1' 
-          source: ./OrchestratorService 
-          # Optional: set environment variables
-          # env_vars: |
-          #   KEY1=VALUE1
-          #   KEY2=VALUE2
+      - name: Set up Cloud SDK
+        uses: 'google-github-actions/setup-gcloud@v2'
 
-      - name: Deploy AgentService to Cloud Run
-        uses: 'google-github-actions/deploy-cloudrun@v2'
-        with:
-          service: 'agentservice' 
-          project_id: 'agent-as-a-service-459620'
-          region: 'us-west1' 
-          source: ./AgentService 
-          # Optional: set environment variables
-          # env_vars: |
-          #   KEY1=VALUE1
-          #   KEY2=VALUE2
+      - name: Submit Cloud Build for Services (Main)
+        run: |
+          gcloud builds submit --project=${{ steps.auth.outputs.project_id }} --config=cloudbuild.yaml --substitutions=_TAG_NAME=latest # For main branch, we might use 'latest' or a release tag
+        working-directory: . # Assuming cloudbuild.yaml is at the root
 
       - name: Build and publish Blazor app
         run: ./scripts/publish-orchestratorwebapp.ps1 # Ensure this script is executable: chmod +x ./scripts/publish-orchestratorwebapp.ps1
