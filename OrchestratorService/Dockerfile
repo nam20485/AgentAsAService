@@ -17,10 +17,9 @@ FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
 
-# Set the ASPNETCORE_URLS environment variable.
-# Cloud Run will inject the PORT environment variable (typically 8080).
-# ASP.NET Core will automatically listen on the URLs specified here.
-ENV ASPNETCORE_URLS=http://*:$PORT
-EXPOSE $PORT
+# Set the ASPNETCORE_URLS environment variable to listen on port 8080 by default.
+# Cloud Run will inject the PORT environment variable at runtime.
+ENV ASPNETCORE_URLS="http://*:8080"
+EXPOSE 8080
 
 ENTRYPOINT ["dotnet", "OrchestratorService.dll"]
