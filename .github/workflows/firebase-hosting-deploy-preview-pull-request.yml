@@ -37,7 +37,8 @@ jobs:
         uses: 'google-github-actions/setup-gcloud@v2'
 
       - name: Submit Cloud Build for Services (Preview)
-        run: gcloud builds submit --project=${{ steps.auth.outputs.project_id }} --config=cloudbuild.yaml --substitutions=_TAG_NAME=${{ github.sha }}
+        run: |
+          gcloud beta builds submit --project=${{ steps.auth.outputs.project_id }} --config=cloudbuild.yaml --substitutions=_TAG_NAME=${{ github.sha }}
         working-directory: . # Assuming cloudbuild.yaml is at the root
 
       #

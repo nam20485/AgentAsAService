@@ -37,7 +37,7 @@ jobs:
 
       - name: Submit Cloud Build for Services (Main)
         run: |
-          gcloud builds submit --project=${{ steps.auth.outputs.project_id }} --config=cloudbuild.yaml --substitutions=_TAG_NAME=latest # For main branch, we might use 'latest' or a release tag
+          gcloud beta builds submit --project=${{ steps.auth.outputs.project_id }} --config=cloudbuild.yaml --substitutions=_TAG_NAME=latest # For main branch, we might use 'latest' or a release tag
         working-directory: . # Assuming cloudbuild.yaml is at the root
 
       - name: Build and publish Blazor app
