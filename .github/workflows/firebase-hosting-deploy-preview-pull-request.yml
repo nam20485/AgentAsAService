@@ -35,11 +35,13 @@ jobs:
 
       - name: Set up Cloud SDK
         uses: 'google-github-actions/setup-gcloud@v2'
+        with:
+          install_components: beta
 
       - name: Submit Cloud Build for Services (Preview)
         run: |
           gcloud beta builds submit --quiet --project=${{ steps.auth.outputs.project_id }} --config=cloudbuild.yaml --substitutions=_TAG_NAME=${{ github.sha }}
-        working-directory: . # Assuming cloudbuild.yaml is at the root
+        working-directory: . # Assuming cloudbuild.yaml is at the root        
 
       #
       # OrchestratorWebApp
