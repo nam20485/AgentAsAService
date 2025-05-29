@@ -8,9 +8,9 @@ substitutions:
   _GCP_PROJECT_ID: 'agent-as-a-service-459620'
   _ARTIFACT_REGISTRY_REPO: 'agent-as-a-service'
   _REGION: 'us-west1'
-  # _SERVICE_ACCOUNT: 'your-cloud-build-service-account@${_GCP_PROJECT_ID}.iam.gserviceaccount.com' # Optional: if your Cloud Run needs a specific SA
+  _SERVICE_ACCOUNT: 'projects/agent-as-a-service-459620/serviceAccounts/101640852106965308653' # Optional: if your Cloud Run needs a specific SA
 
-serviceAccount: projects/agent-as-a-service-459620/serviceAccounts/101640852106965308653
+serviceAccount: ${{_SERVICE_ACCOUNT}
 
 steps:  
 # # Step 1: OrchestratorWebApp (currently commented out, can be enabled similarly)
@@ -62,7 +62,8 @@ steps:
   args:
     - 'run'
     - 'deploy'
-    - 'orchestratorservice' # Corrected service name
+
+    - 'orchestratorservice'
     - '--image'
     - '${_REGION}-docker.pkg.dev/${_GCP_PROJECT_ID}/${_ARTIFACT_REGISTRY_REPO}/orchestratorservice:${_TAG_NAME}'
     - '--region'
@@ -71,8 +72,10 @@ steps:
     - '${_GCP_PROJECT_ID}'
     - '--platform'
     - 'managed'
+    - '--set-env-vars'
+    - 'ASPNETCORE_URLS=http://*:$PORT'
     # - '--service-account=${_SERVICE_ACCOUNT}' # Optional: if your service needs a specific SA
-    - '--quiet' # Suppresses interactive prompts
+    - '--quiet'
 
 # Step 3: Build, Push, and Deploy AgentService
 - name: 'gcr.io/cloud-builders/docker'
@@ -111,6 +114,8 @@ steps:
     - '${_GCP_PROJECT_ID}'
     - '--platform'
     - 'managed'
+    - '--set-env-vars'
+    - 'ASPNETCORE_URLS=http://*:$PORT'
     # - '--service-account=${_SERVICE_ACCOUNT}' # Optional
     - '--quiet'
 

@@ -13,13 +13,14 @@ RUN dotnet build "AgentService.csproj" -c Release -o /app/build
 FROM build AS publish
 RUN dotnet publish "AgentService.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
-FROM base AS final
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
 
-# Set the ASPNETCORE_URLS environment variable.
-# Cloud Run will inject the PORT environment variable (typically 8080).
-# ASP.NET Core will automatically listen on the URLs specified here.
-ENV ASPNETCORE_URLS=http://*:$PORT
-EXPOSE $PORT
+# The ASPNETCORE_URLS environment variable will be set by Cloud Run during deployment.
+EXPOSE 8080 
+# Using a default like 8080 for EXPOSE is common if $PORT isn't available at build time for EXPOSE.
+# Alternatively, if your build system for Docker allows ARG to ENV expansion for EXPOSE, that could be used.
+# However, for Cloud Run, the actual listening port is determined by the PORT env var set at runtime.
+
 ENTRYPOINT ["dotnet", "AgentService.dll"]
