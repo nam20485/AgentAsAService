@@ -10,7 +10,7 @@ substitutions:
   _REGION: 'us-west1'
   _SERVICE_ACCOUNT: 'projects/agent-as-a-service-459620/serviceAccounts/101640852106965308653' # Optional: if your Cloud Run needs a specific SA
 
-serviceAccount: ${{_SERVICE_ACCOUNT}
+serviceAccount: ${_SERVICE_ACCOUNT}
 
 steps:  
 # # Step 1: OrchestratorWebApp (currently commented out, can be enabled similarly)
