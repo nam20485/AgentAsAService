@@ -128,6 +128,6 @@ images:
   - '${_REGION}-docker.pkg.dev/${_GCP_PROJECT_ID}/${_ARTIFACT_REGISTRY_REPO}/agentservice:latest'
 
 options:
-  logging: LEGACY # Send logs to Cloud Logging
+  logging: CLOUD_LOGGING_ONLY # Changed from LEGACY to CLOUD_LOGGING_ONLY
   # machineType: 'E2_HIGHCPU_8' # Optional: Uncomment to specify a faster machine type for Cloud Build
 
