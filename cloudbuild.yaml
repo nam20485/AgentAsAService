@@ -72,7 +72,7 @@ steps:
     - '--platform'
     - 'managed'
     - '--set-env-vars'
-    - 'ASPNETCORE_URLS=http://*:$PORT'
+    - 'ASPNETCORE_URLS=http://*:$$PORT'
     # - '--service-account=${_SERVICE_ACCOUNT}' # Optional: if your service needs a specific SA
     - '--quiet'
 
@@ -114,7 +114,7 @@ steps:
     - '--platform'
     - 'managed'
     - '--set-env-vars'
-    - 'ASPNETCORE_URLS=http://*:$PORT'
+    - 'ASPNETCORE_URLS=http://*:$$PORT'
     # - '--service-account=${_SERVICE_ACCOUNT}' # Optional
     - '--quiet'
 
