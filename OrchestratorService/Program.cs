@@ -20,7 +20,11 @@ internal class Program
             app.UseSwaggerUI();
         }
 
-        app.UseHttpsRedirection();
+        // Only use HTTPS redirection in development - Cloud Run handles HTTPS termination
+        if (app.Environment.IsDevelopment())
+        {
+            app.UseHttpsRedirection();
+        }
 
         var firebaseApp = FirebaseApp.Create();
 
