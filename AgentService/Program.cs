@@ -6,6 +6,10 @@ internal class Program
     {
         var builder = WebApplication.CreateBuilder(args);
 
+        // Configure Kestrel to use the PORT environment variable if available
+        var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+        builder.WebHost.UseUrls($"http://*:{port}");
+
         // Add services to the container.
         // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
         builder.Services.AddEndpointsApiExplorer();
