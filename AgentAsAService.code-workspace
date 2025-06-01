@@ -4,5 +4,15 @@
 			"path": "."
 		}
 	],
-	"settings": {}
+	"settings": {
+		"ai.preferences": {
+			"defaultTools": ["sequential_thinking", "memory"],
+			"workflowConfig": ".ai-workflow-config.md",
+			"requireSystematicApproach": true,
+			"maintainContext": true
+		},
+		"files.associations": {
+			".ai-workflow-config.md": "markdown"
+		}
+	}
 }
