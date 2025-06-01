@@ -8,9 +8,9 @@ substitutions:
   _GCP_PROJECT_ID: 'agent-as-a-service-459620'
   _ARTIFACT_REGISTRY_REPO: 'agent-as-a-service'
   _REGION: 'us-west1'
-  _SERVICE_ACCOUNT: 'projects/agent-as-a-service-459620/serviceAccounts/101640852106965308653' # Optional: if your Cloud Run needs a specific SA
 
-serviceAccount: ${_SERVICE_ACCOUNT}
+# Using default Cloud Build service account instead of explicit service account
+# serviceAccount: ${_SERVICE_ACCOUNT}
 
 steps:  
 # # Step 1: OrchestratorWebApp (currently commented out, can be enabled similarly)
@@ -71,9 +71,9 @@ steps:
     - '${_GCP_PROJECT_ID}'
     - '--platform'
     - 'managed'
-    - '--set-env-vars'
-    - 'ASPNETCORE_URLS=http://*:$$PORT'
-    # - '--service-account=${_SERVICE_ACCOUNT}' # Optional: if your service needs a specific SA
+    - '--port'
+    - '8080'
+    - '--allow-unauthenticated'
     - '--quiet'
 
 # Step 3: Build, Push, and Deploy AgentService
@@ -113,9 +113,9 @@ steps:
     - '${_GCP_PROJECT_ID}'
     - '--platform'
     - 'managed'
-    - '--set-env-vars'
-    - 'ASPNETCORE_URLS=http://*:$$PORT'
-    # - '--service-account=${_SERVICE_ACCOUNT}' # Optional
+    - '--port'
+    - '8080'
+    - '--allow-unauthenticated'
     - '--quiet'
 
 # This section tells Cloud Build which images to push to Artifact Registry if not explicitly pushed.
