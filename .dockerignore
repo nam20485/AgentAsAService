@@ -52,10 +52,10 @@ firestore-debug.log
 # DevContainer logs
 devcontainer-open-fail.log
 
-# Scripts directory (not needed for runtime)
-scripts/
-prompts/
+## Scripts directory (not needed for runtime)
+#scripts/
+#prompts/
 
 # Documentation
-README.md
-*.md
+#README.md
+#*.md
