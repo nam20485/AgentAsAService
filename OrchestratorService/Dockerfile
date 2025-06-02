@@ -5,6 +5,7 @@ WORKDIR /app
 FROM mcr.microsoft.com/dotnet/sdk:8.0@sha256:b56053d0a8f4627047740941396e76cd9e7a9421c83b1d81b68f10e5019862d7 AS build
 WORKDIR /src
 COPY ["OrchestratorService/OrchestratorService.csproj", "OrchestratorService/"]
+COPY ["SharedLib/SharedLib.csproj", "SharedLib/"]
 RUN dotnet restore "OrchestratorService/OrchestratorService.csproj"
 COPY . .
 WORKDIR "/src/OrchestratorService"
