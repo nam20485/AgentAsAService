@@ -53,7 +53,8 @@
 			   "googlecloudtools.cloudcode",
 			   "hbenl.vscode-test-explorer",
 			   "ms-dotnettools.dotnet-maui",
-			   "ms-vscode.powershell",			
+			   "ms-vscode.powershell",			   
+			   "aliasadidev.nugetpackagemanagergui"
 			//    "pspester.pester-test",
 			//    "unoplatform.vscode"
 		   ]

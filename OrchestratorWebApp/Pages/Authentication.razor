@@ -1,0 +1,61 @@
+@page "/authentication/{action}"
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+
+<RemoteAuthenticatorView Action="@Action">
+    <LoggingIn>
+        <div class="d-flex justify-content-center">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Signing in...</span>
+            </div>
+        </div>
+    </LoggingIn>
+    <LogInFailed>
+        <div class="alert alert-danger" role="alert">
+            <h4 class="alert-heading">Authentication failed!</h4>
+            <p>There was an error trying to sign you in. Please try again.</p>
+            <hr>
+            <a class="btn btn-primary" href="authentication/login">Try again</a>
+        </div>
+    </LogInFailed>
+    <LogOut>
+        <div class="d-flex justify-content-center">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Signing out...</span>
+            </div>
+        </div>
+    </LogOut>
+    <LogOutFailed>
+        <div class="alert alert-danger" role="alert">
+            <h4 class="alert-heading">Sign out failed!</h4>
+            <p>There was an error trying to sign you out. You may need to close your browser.</p>
+        </div>
+    </LogOutFailed>
+    <LogOutSucceeded>
+        <div class="alert alert-success" role="alert">
+            <h4 class="alert-heading">Signed out successfully!</h4>
+            <p>You have been signed out. Thank you for using Agent as a Service.</p>
+            <hr>
+            <a class="btn btn-primary" href="">Return to Home</a>
+        </div>
+    </LogOutSucceeded>
+    <UserProfile>
+        <div class="container">
+            <h3>User Profile</h3>
+            <AuthorizeView>
+                <Authorized>
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Welcome, @context.User.Identity?.Name!</h5>
+                            <p class="card-text">Email: @context.User.FindFirst("email")?.Value</p>
+                            <a href="authentication/logout" class="btn btn-danger">Sign Out</a>
+                        </div>
+                    </div>
+                </Authorized>
+            </AuthorizeView>
+        </div>
+    </UserProfile>
+</RemoteAuthenticatorView>
+
+@code {
+    [Parameter] public string? Action { get; set; }
+}

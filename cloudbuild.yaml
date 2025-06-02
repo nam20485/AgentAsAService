@@ -1,16 +1,22 @@
 # cloudbuild.yaml
 
 # This file defines the steps for Cloud Build to build, tag, push, and deploy
-# OrchestratorService and AgentService using dynamic tags.
+# OrchestratorService and AgentService using dynamic tags with production authentication.
 
 substitutions:
   _TAG_NAME: 'latest' # Default tag, will be overridden by GitHub Actions
   _GCP_PROJECT_ID: 'agent-as-a-service-459620'
   _ARTIFACT_REGISTRY_REPO: 'agent-as-a-service'
   _REGION: 'us-west1'
+  _GOOGLE_CLIENT_ID: '${_GOOGLE_CLIENT_ID}' # Set in Cloud Build trigger
+  _GITHUB_APP_ID: '${_GITHUB_APP_ID}' # Set in Cloud Build trigger
+  _GITHUB_INSTALLATION_ID: '${_GITHUB_INSTALLATION_ID}' # Set in Cloud Build trigger
 
-# Using default Cloud Build service account instead of explicit service account
-# serviceAccount: ${_SERVICE_ACCOUNT}
+# Using default Cloud Build service account for build and deploy
+# Ensure this service account has the necessary IAM roles:
+# - Cloud Run Admin
+# - Service Account User
+# - Artifact Registry Writer
 
 steps:  
 # # Step 1: OrchestratorWebApp (currently commented out, can be enabled similarly)
@@ -74,6 +80,22 @@ steps:
     - '--port'
     - '8080'
     - '--allow-unauthenticated'
+    - '--service-account'
+    - 'orchestrator@${_GCP_PROJECT_ID}.iam.gserviceaccount.com'
+    - '--set-env-vars'
+    - 'ASPNETCORE_ENVIRONMENT=Production,GOOGLE_CLIENT_ID=${_GOOGLE_CLIENT_ID},CLOUD_RUN_REGION=${_REGION}'
+    - '--memory'
+    - '512Mi'
+    - '--cpu'
+    - '1'
+    - '--min-instances'
+    - '0'
+    - '--max-instances'
+    - '10'
+    - '--concurrency'
+    - '80'
+    - '--timeout'
+    - '300'
     - '--quiet'
 
 # Step 3: Build, Push, and Deploy AgentService
@@ -115,7 +137,23 @@ steps:
     - 'managed'
     - '--port'
     - '8080'
-    - '--allow-unauthenticated'
+    - '--no-allow-unauthenticated'  # AgentService should be protected
+    - '--service-account'
+    - 'agent-service@${_GCP_PROJECT_ID}.iam.gserviceaccount.com'
+    - '--set-env-vars'
+    - 'ASPNETCORE_ENVIRONMENT=Production,GITHUB_APP_ID=${_GITHUB_APP_ID},GITHUB_INSTALLATION_ID=${_GITHUB_INSTALLATION_ID}'
+    - '--memory'
+    - '1Gi'
+    - '--cpu'
+    - '1'
+    - '--min-instances'
+    - '0'
+    - '--max-instances'
+    - '10'
+    - '--concurrency'
+    - '80'
+    - '--timeout'
+    - '300'
     - '--quiet'
 
 # This section tells Cloud Build which images to push to Artifact Registry if not explicitly pushed.
