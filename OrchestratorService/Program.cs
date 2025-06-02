@@ -1,4 +1,8 @@
 using FirebaseAdmin;
+using Google.Cloud.Firestore;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using OrchestratorService.Services;
 
 internal class Program
 {
@@ -11,9 +15,57 @@ internal class Program
         builder.WebHost.UseUrls($"http://*:{port}");
 
         // Add services to the container.
-        // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+        builder.Services.AddControllers();
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
+
+        // Add HTTP client factory
+        builder.Services.AddHttpClient();
+
+        // Register HTTP client services
+        builder.Services.AddHttpClient<IAgentHttpClientService, AgentHttpClientService>();
+
+        // Add Google Cloud Firestore
+        builder.Services.AddSingleton(provider =>
+        {
+            var projectId = builder.Configuration["GoogleCloud:ProjectId"];
+            return FirestoreDb.Create(projectId);
+        });
+
+        // Add Authentication
+        builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddJwtBearer(options =>
+            {
+                options.Authority = $"https://securetoken.google.com/{builder.Configuration["GoogleCloud:ProjectId"]}";
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidIssuer = $"https://securetoken.google.com/{builder.Configuration["GoogleCloud:ProjectId"]}",
+                    ValidateAudience = true,
+                    ValidAudience = builder.Configuration["GoogleCloud:ProjectId"],
+                    ValidateLifetime = true,
+                    ClockSkew = TimeSpan.Zero
+                };
+            });
+
+        // Add Authorization
+        builder.Services.AddAuthorization(options =>
+        {
+            options.AddPolicy("RequireAuthenticatedUser", policy =>
+                policy.RequireAuthenticatedUser());
+        });
+
+        // Add CORS for Blazor WebAssembly
+        builder.Services.AddCors(options =>
+        {
+            options.AddPolicy("BlazorPolicy", policy =>
+            {
+                policy.WithOrigins(builder.Configuration.GetSection("AllowedOrigins").Get<string[]>() ?? new[] { "https://localhost:7001" })
+                      .AllowAnyMethod()
+                      .AllowAnyHeader()
+                      .AllowCredentials();
+            });
+        });
 
         var app = builder.Build();
 
@@ -29,6 +81,13 @@ internal class Program
         {
             app.UseHttpsRedirection();
         }
+
+        app.UseCors("BlazorPolicy");
+
+        app.UseAuthentication();
+        app.UseAuthorization();
+
+        app.MapControllers();
 
         var firebaseApp = FirebaseApp.Create();
 
