@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -8,12 +8,34 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="8.0.16" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="8.0.16" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="9.0.5" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="9.0.5" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" Version="9.0.5" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.5" />
   </ItemGroup>
 
-  <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
-    <Exec Command="dotnet workload restore" />
+  <Target Name="Install/Update Workload wasm-tools" BeforeTargets="PreBuildEvent">
+    <PropertyGroup>
+      <WasmToolsWorkloadId>wasm-tools</WasmToolsWorkloadId>
+      <_WasmToolsInstalled>false</_WasmToolsInstalled> <!-- Default to not installed -->
+    </PropertyGroup>
+    <Message Text="Checking if .NET workload '$(WasmToolsWorkloadId)' is installed..." Importance="high" />
+    <!-- Execute 'dotnet workload list' and capture its output -->
+    <Exec Command="dotnet workload list" ConsoleToMSBuild="true" IgnoreStandardErrorWarningFormat="true" ContinueOnError="true">
+      <Output TaskParameter="ConsoleOutput" ItemName="WorkloadListOutput" />
+    </Exec>
+    <!-- Filter the output lines to find if 'wasm-tools' is listed -->
+    <ItemGroup>
+      <_WasmToolsLine Include="@(WorkloadListOutput)" Condition="$([System.String]::new('%(Identity)').Contains('$(WasmToolsWorkloadId)'))" />
+    </ItemGroup>
+    <!-- If _WasmToolsLine item group is not empty, the workload was found in the list -->
+    <PropertyGroup>
+      <_WasmToolsInstalled Condition="'@(_WasmToolsLine)' != ''">true</_WasmToolsInstalled>
+    </PropertyGroup>
+    <Message Text=".NET workload '$(WasmToolsWorkloadId)' installed status: $(_WasmToolsInstalled). Will attempt install if false." Importance="high" />
+    <!-- Conditionally run the install command -->
+    <Exec Command="dotnet workload install $(WasmToolsWorkloadId)" Condition="'$(_WasmToolsInstalled)' == 'false'" />
+    <!-- <Exec Command="dotnet workload update Condition="'$(_WasmToolsInstalled)' == 'true'" /> -->
   </Target>
 
 </Project>

@@ -1,4 +1,9 @@
 using FirebaseAdmin;
+using Google.Cloud.Firestore;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using Google.Apis.Auth.OAuth2;
+using AgentService.Services;
 
 internal class Program
 {
@@ -6,10 +11,66 @@ internal class Program
     {
         var builder = WebApplication.CreateBuilder(args);
 
+        // Configure Kestrel to use the PORT environment variable if available
+        var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+        builder.WebHost.UseUrls($"http://*:{port}");
+
         // Add services to the container.
-        // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+        builder.Services.AddControllers();
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
+        builder.Services.AddHttpContextAccessor();
+
+        // Register authentication services
+        builder.Services.AddScoped<IServiceAuthenticationService, ServiceAuthenticationService>();
+
+        // Add Google Cloud Firestore
+        builder.Services.AddSingleton(provider =>
+        {
+            var projectId = builder.Configuration["GoogleCloud:ProjectId"];
+            return FirestoreDb.Create(projectId);
+        });
+
+        // Add Service-to-Service Authentication
+        builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddJwtBearer("ServiceToService", options =>
+            {
+                // For service-to-service communication using Google Cloud Service Accounts
+                options.Authority = $"https://securetoken.google.com/{builder.Configuration["GoogleCloud:ProjectId"]}";
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidIssuer = $"https://securetoken.google.com/{builder.Configuration["GoogleCloud:ProjectId"]}",
+                    ValidateAudience = true,
+                    ValidAudience = builder.Configuration["GoogleCloud:ProjectId"],
+                    ValidateLifetime = true,
+                    ClockSkew = TimeSpan.Zero
+                };
+            })
+            .AddJwtBearer("GoogleServiceAccount", options =>
+            {
+                // For Google Cloud Service Account authentication
+                options.Authority = "https://accounts.google.com";
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidIssuer = "https://accounts.google.com",
+                    ValidateAudience = true,
+                    ValidAudience = builder.Configuration["GoogleCloud:ProjectId"],
+                    ValidateLifetime = true
+                };
+            });
+
+        // Add Authorization policies
+        builder.Services.AddAuthorization(options =>
+        {
+            options.AddPolicy("RequireServiceAuthentication", policy =>
+                policy.RequireAuthenticatedUser()
+                      .AddAuthenticationSchemes("ServiceToService", "GoogleServiceAccount"));
+            
+            options.AddPolicy("RequireOrchestratorService", policy =>
+                policy.RequireClaim("email", builder.Configuration["AgentService:AllowedServiceEmails"]?.Split(',') ?? Array.Empty<string>()));
+        });
 
         var app = builder.Build();
 
@@ -20,7 +81,16 @@ internal class Program
             app.UseSwaggerUI();
         }
 
-        app.UseHttpsRedirection();
+        // Only use HTTPS redirection in development - Cloud Run handles HTTPS termination
+        if (app.Environment.IsDevelopment())
+        {
+            app.UseHttpsRedirection();
+        }
+
+        app.UseAuthentication();
+        app.UseAuthorization();
+
+        app.MapControllers();
 
         var firebaseApp = FirebaseApp.Create();
 

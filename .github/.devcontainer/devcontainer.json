@@ -24,7 +24,7 @@
 	// },
 
 	// Use 'postCreateCommand' to run commands after the container is created.
-	"postCreateCommand": "dotnet workload restore OrchestratorWebApp/OrchestratorWebApp.csproj",
+	"postCreateCommand": "sudo dotnet workload install wasm-tools",
 
 	// Configure tool-specific properties.
 	"customizations": {
@@ -53,7 +53,8 @@
 			   "googlecloudtools.cloudcode",
 			   "hbenl.vscode-test-explorer",
 			   "ms-dotnettools.dotnet-maui",
-			   "ms-vscode.powershell",			
+			   "ms-vscode.powershell",			   
+			   "aliasadidev.nugetpackagemanagergui"
 			//    "pspester.pester-test",
 			//    "unoplatform.vscode"
 		   ]
@@ -61,7 +62,7 @@
 	},
 
 	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
-	// "remoteUser": "vscode",
+	 "remoteUser": "root"
 	// "containerUser": "vscode"
 	
 	//"updateRemoteUserUID": 

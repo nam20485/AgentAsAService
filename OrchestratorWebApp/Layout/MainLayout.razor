@@ -4,9 +4,17 @@
         <NavMenu />
     </div>
 
-    <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
+    <main>        <div class="top-row px-4">
+            <AuthorizeView>
+                <Authorized>
+                    <span class="text-success me-3">Welcome, @context.User.Identity?.Name!</span>
+                    <a href="authentication/profile" class="me-3">Profile</a>
+                    <a href="authentication/logout">Sign Out</a>
+                </Authorized>
+                <NotAuthorized>
+                    <a href="authentication/login">Sign In</a>
+                </NotAuthorized>
+            </AuthorizeView>
         </div>
 
         <article class="content px-4">

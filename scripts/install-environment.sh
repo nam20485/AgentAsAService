@@ -73,3 +73,36 @@ if [ -z "$GCLOUD_CMD" ] || [ "$INSTALLED_GCLOUD_VERSION" != "$REQUIRED_GCLOUD_VE
 else
   echo "Google Cloud CLI version $REQUIRED_GCLOUD_VERSION already installed."
 fi
+
+gcloud version
+
+#
+# GitHub CLI (gh)
+#
+REQUIRED_GH_VERSION="2.64.0"
+GH_CMD=$(command -v gh || echo "")
+INSTALLED_GH_VERSION=""
+
+if [ -n "$GH_CMD" ]; then
+  # Parse the version from the gh version output
+  INSTALLED_GH_VERSION=$("$GH_CMD" version 2>/dev/null | grep 'gh version' | awk '{print $3}' | tr -d '[:space:]')
+fi
+
+echo "GH_CMD: '$GH_CMD'"
+echo "INSTALLED_GH_VERSION: '$INSTALLED_GH_VERSION'"
+echo "REQUIRED_GH_VERSION: '$REQUIRED_GH_VERSION'"
+
+if [ -z "$GH_CMD" ] || [ "$INSTALLED_GH_VERSION" != "$REQUIRED_GH_VERSION" ]; then
+  echo "Installing GitHub CLI version $REQUIRED_GH_VERSION..."
+  curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
+  && sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg \
+  && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
+  && sudo apt update \
+  && sudo apt install gh=$REQUIRED_GH_VERSION-1
+else
+  echo "GitHub CLI version $REQUIRED_GH_VERSION already installed."
+fi
+
+gh version
+
+echo "Environment setup completed successfully!"
