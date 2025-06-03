@@ -1,0 +1,82 @@
+name: "CodeQL Security Analysis"
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  schedule:
+    - cron: '0 2 * * 1' # Weekly on Mondays at 2 AM UTC
+
+permissions:
+  actions: read
+  contents: read
+  security-events: write
+
+jobs:
+  analyze:
+    name: Analyze Code
+    runs-on: ubuntu-22.04
+    timeout-minutes: 360
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [ 'csharp', 'javascript' ]
+        # CodeQL supports [ 'cpp', 'csharp', 'go', 'java', 'javascript', 'python', 'ruby' ]
+
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@c6295a65d1254861815972266d5933fd6e532bdf # v2.11.1
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+
+      - name: Setup .NET
+        if: matrix.language == 'csharp'
+        uses: actions/setup-dotnet@6bd8b7f7774af54e05809fcc5431931b3eb1ddee # v4.0.1
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Setup Node.js
+        if: matrix.language == 'javascript'
+        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
+        with:
+          node-version: '20.x'
+
+      # Initializes the CodeQL tools for scanning
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@e2b3eafc8d227b0241d48be5f425d47c2d750a13 # v3.26.10
+        with:
+          languages: ${{ matrix.language }}
+          # Override default queries with security-focused query suite
+          queries: security-extended,security-and-quality
+
+      # For C#, we need to build the solution
+      - name: Build .NET Solution
+        if: matrix.language == 'csharp'
+        run: |
+          dotnet restore AgentAsAService.sln
+          dotnet build AgentAsAService.sln --no-restore --configuration Release
+
+      # For JavaScript, install dependencies
+      - name: Install JavaScript Dependencies
+        if: matrix.language == 'javascript'
+        run: |
+          if [ -f "OrchestratorWebApp/package.json" ]; then
+            cd OrchestratorWebApp && npm ci
+          fi
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@e2b3eafc8d227b0241d48be5f425d47c2d750a13 # v3.26.10
+        with:
+          category: "/language:${{matrix.language}}"
+          
+      # Upload results to GitHub Security tab
+      - name: Upload CodeQL results
+        uses: github/codeql-action/upload-sarif@e2b3eafc8d227b0241d48be5f425d47c2d750a13 # v3.26.10
+        if: always()
+        with:
+          sarif_file: ../results/
