@@ -7,12 +7,13 @@
 		
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	"features": {
-		"ghcr.io/devcontainers/features/github-cli:1": {},
 		"ghcr.io/devcontainers/features/node:1" : {},
-		"ghcr.io/devcontainers/features/docker-in-docker:2": {},
-		// "ghcr.io/devcontainers/features/sshd:1": {},
+		"ghcr.io/devcontainers/features/python:1": {},
+		"ghcr.io/devcontainers/features/github-cli:1": {},		
+		"ghcr.io/devcontainers/features/docker-in-docker:2": {},		
 		"ghcr.io/dhoeric/features/google-cloud-cli:1": {},
 		"ghcr.io/devcontainers-extra/features/firebase-cli:2": {}
+		// "ghcr.io/devcontainers/features/sshd:1": {},
 	},
 
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
@@ -24,10 +25,10 @@
 	// },
 
 	// Use 'postCreateCommand' to run commands after the container is created.
-	"postCreateCommand": "sudo dotnet workload install wasm-tools",
+	"postCreateCommand": "./scripts/onPostCreateCommand.ps1",
 
 	// Configure tool-specific properties.
-	"customizations": {
+	"customizations": { 
 		"vscode": {
 		   "extensions": [
 			  "ms-dotnettools.csharp",
@@ -35,12 +36,12 @@
 			  "ms-dotnettools.csharp-extensions",
 			  "ms-dotnettools.vscodeintellicode-csharp",
 			  "github.copilot",
-			  //"github.copilot-chat",               
+			  "github.copilot-chat",
 			//   "github.vscode-pull-request-github",              
 			   "42crunch.vscode-openapi",
 			   "ahmadalli.vscode-nginx-conf",
 			   "christian-kohler.npm-intellisense",
-			//   "dbaeumer.vscode-eslint",
+			   "dbaeumer.vscode-eslint",
 			//   "docsmsft.docs-article-templates",
 			//   "docsmsft.docs-authoring-pack",
 			//   "docsmsft.docs-build",
