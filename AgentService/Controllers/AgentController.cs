@@ -34,7 +34,7 @@ public class AgentController : ControllerBase
     /// Get agent status - requires service authentication
     /// </summary>
     [HttpGet("status")]
-    public async Task<IActionResult> GetStatus()
+    public IActionResult GetStatus()
     {
         try
         {
