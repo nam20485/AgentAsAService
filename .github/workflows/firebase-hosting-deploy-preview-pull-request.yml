@@ -3,56 +3,78 @@
 
 name: Deploy to Firebase Hosting on PR
 on: pull_request
+
+env:
+  DOTNET_SDK_VERSION: 9.0.300  
+  FIREBASE_CLI_VERSION: 14.4.0
+  NODE_VERSION: lts
+
 permissions:
   checks: write
   contents: read
   pull-requests: write
+
 jobs:
   build_and_preview:
-    if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
+    #if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v4
+      - name: Harden Runner
+        uses: step-security/harden-runner@c6295a65d1254861815972266d5933fd6e532bdf # v2.11.1
+        with:
+          egress-policy: audit
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
       
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
         with:
-          node-version: '20.x' # Upgrade Node.js to a compatible version for firebase CLI    
+          node-version: ${{ env.NODE_VERSION }} # Upgrade Node.js to a compatible version for firebase CLI    
 
       - name: Install Firebase CLI
-        run: npm install firebase-tools@14.4.0
+        run: npm install firebase-tools@${{ env.FIREBASE_CLI_VERSION }}
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v3
+        uses: actions/setup-dotnet@6bd8b7f7774af54e05809fcc5431931b3eb1ddee # v4.0.1
         with:
-          dotnet-version: '8.0.410' # Using 8.0.x to get the latest patch
+          dotnet-version: '${{env.DOTNET_SDK_VERSION}}'
+
+      - name: Setup problem matchers
+        run: |
+          echo "::add-matcher::.github/problem-matchers/dotnet.json"
+          echo "::add-matcher::.github/problem-matchers/eslint-stylish.json"
 
       - name: Authenticate to Google Cloud
         id: auth
-        uses: 'google-github-actions/auth@v2'
+        uses: 'google-github-actions/auth@55bd3a7c6e2ae7cf1877fd1ccb9d54c0503c457c' # v2.1.3
         with:
           credentials_json: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_AGENT_AS_A_SERVICE_459620 }}'
 
       - name: Set up Cloud SDK
-        uses: 'google-github-actions/setup-gcloud@v2'
+        uses: 'google-github-actions/setup-gcloud@98ddc00a17442e89a24bbf282954a3b65ce6d200' # v2.1.0
         with:
           install_components: beta
 
+      #
+      # Backend services:
+      #   - OrchestratorService
+      #   - AgentService
+      #
       - name: Submit Cloud Build for Services (Preview)
         run: |
           gcloud beta builds submit --quiet --project=${{ steps.auth.outputs.project_id }} --config=cloudbuild.yaml --substitutions=_TAG_NAME=${{ github.sha }}
         working-directory: . # Assuming cloudbuild.yaml is at the root        
 
       #
-      # OrchestratorWebApp
+      # Frontend web app:
+      #   - OrchestratorWebApp
       #
       - name: Build and publish Blazor app
         run: |
           chmod +x ./scripts/publish-orchestratorwebapp.ps1
           ./scripts/publish-orchestratorwebapp.ps1
 
-      - uses: FirebaseExtended/action-hosting-deploy@v0
+      - uses: FirebaseExtended/action-hosting-deploy@0cbcac4740c2bfb00d632f0b863b57713124eb5a # v0.9.0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_AGENT_AS_A_SERVICE_459620 }}
-          projectId: agent-as-a-service-459620
+          projectId: ${{ steps.auth.outputs.project_id }}
