@@ -4,6 +4,9 @@ sudo dotnet workload install wasm-tools
 
 & ([scriptblock]::Create((iwr 'https://to.loredo.me/Install-NerdFont.ps1'))) -Confirm:$false -Name hack, heavy-data
 
+git config --global Nathan Miller
+git config --global nmiller217@gmail.com
+
 # install LTS version of node/npm
 nvm install --lts
 nvm use --lts
