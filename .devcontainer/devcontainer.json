@@ -14,7 +14,7 @@
 {
     "name": "agentasaservice",
     // Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
-    "image": "ghcr.io/nam20485/agentasaservice:latest"
+    "image": "ghcr.io/nam20485/dotnet-prebuild:latest"
     // Features to add to the dev container. More info: https://containers.dev/features.
     // "features": {
     // },
