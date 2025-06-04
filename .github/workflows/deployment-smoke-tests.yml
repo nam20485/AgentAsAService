@@ -1,0 +1,419 @@
+# Deployment smoke tests workflow for production health validation
+name: Deployment Smoke Tests
+
+on:
+  workflow_run:
+    workflows: ["Firebase Hosting - Merge"]
+    types:
+      - completed
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to test'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+        - production
+        - staging
+      test_suite:
+        description: 'Test suite to run'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+        - all
+        - health-only
+        - integration
+        - performance
+
+permissions:
+  contents: read
+  id-token: write
+  actions: read
+  checks: write
+
+env:
+  DOTNET_VERSION: '9.0.300'
+  NODE_VERSION: 'lts/*'
+  # Production service URLs
+  ORCHESTRATOR_URL: 'https://orchestratorservice-us-west1-agent-as-a-service-459620.run.app'
+  AGENT_URL: 'https://agentservice-us-west1-agent-as-a-service-459620.run.app'
+  WEBAPP_URL: 'https://agent-as-a-service-459620.web.app'
+
+jobs:
+  health-checks:
+    name: Health Check Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    if: always() && (github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch')
+    
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@c6295a65d1254861815972266d5933fd6e532bdf # v2.10.1
+        with:
+          egress-policy: audit
+          
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Setup problem matchers
+        run: |
+          echo "::add-matcher::.github/problem-matchers/dotnet.json"
+
+      - name: Test OrchestratorService Health
+        run: |
+          echo "Testing OrchestratorService health endpoints..."
+          
+          # Basic health check
+          echo "✅ Testing /health endpoint..."
+          curl -f -s --retry 3 --retry-delay 5 --max-time 30 \
+            "${{ env.ORCHESTRATOR_URL }}/health" || {
+            echo "❌ Health check failed for OrchestratorService"
+            exit 1
+          }
+          
+          # Readiness check
+          echo "✅ Testing /health/ready endpoint..."
+          curl -f -s --retry 3 --retry-delay 5 --max-time 30 \
+            "${{ env.ORCHESTRATOR_URL }}/health/ready" || {
+            echo "❌ Readiness check failed for OrchestratorService"
+            exit 1
+          }
+          
+          # Liveness check
+          echo "✅ Testing /health/live endpoint..."
+          curl -f -s --retry 3 --retry-delay 5 --max-time 30 \
+            "${{ env.ORCHESTRATOR_URL }}/health/live" || {
+            echo "❌ Liveness check failed for OrchestratorService"
+            exit 1
+          }
+          
+          echo "✅ All OrchestratorService health checks passed!"
+
+      - name: Test AgentService Health
+        run: |
+          echo "Testing AgentService health endpoints..."
+          
+          # Basic health check (should work without auth)
+          echo "✅ Testing /health endpoint..."
+          curl -f -s --retry 3 --retry-delay 5 --max-time 30 \
+            "${{ env.AGENT_URL }}/health" || {
+            echo "❌ Health check failed for AgentService"
+            exit 1
+          }
+          
+          echo "✅ All AgentService health checks passed!"
+
+      - name: Test WebApp Availability
+        run: |
+          echo "Testing Blazor WebApp availability..."
+          
+          # Check if the main page loads
+          echo "✅ Testing main page load..."
+          response=$(curl -s -o /dev/null -w "%{http_code}" --retry 3 --retry-delay 5 --max-time 30 \
+            "${{ env.WEBAPP_URL }}")
+          
+          if [ "$response" != "200" ]; then
+            echo "❌ WebApp not accessible, HTTP $response"
+            exit 1
+          fi
+          
+          # Check for Blazor WebAssembly indicators
+          echo "✅ Testing Blazor WebAssembly indicators..."
+          page_content=$(curl -s --retry 3 --retry-delay 5 --max-time 30 \
+            "${{ env.WEBAPP_URL }}")
+          
+          if ! echo "$page_content" | grep -q "blazor"; then
+            echo "❌ Blazor indicators not found in page content"
+            exit 1
+          fi
+          
+          echo "✅ WebApp accessibility checks passed!"
+
+  api-functional-tests:
+    name: API Functional Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: health-checks
+    if: (github.event.inputs.test_suite == 'all' || github.event.inputs.test_suite == 'integration') || github.event_name == 'workflow_run'
+    
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@c6295a65d1254861815972266d5933fd6e532bdf # v2.10.1
+        with:
+          egress-policy: audit
+          
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Test OrchestratorService API Endpoints
+        run: |
+          echo "Testing OrchestratorService API endpoints..."
+          
+          # Test weather forecast endpoint (public)
+          echo "✅ Testing /weatherforecast endpoint..."
+          response=$(curl -s -w "%{http_code}" --retry 3 --retry-delay 5 --max-time 30 \
+            "${{ env.ORCHESTRATOR_URL }}/weatherforecast")
+          
+          http_code=$(echo "$response" | tail -c 4)
+          
+          if [ "$http_code" != "200" ]; then
+            echo "❌ WeatherForecast endpoint failed, HTTP $http_code"
+            exit 1
+          fi
+          
+          # Check response contains valid JSON array
+          response_body=$(echo "$response" | head -c -4)
+          if ! echo "$response_body" | jq -e 'type == "array"' > /dev/null 2>&1; then
+            echo "❌ WeatherForecast endpoint did not return valid JSON array"
+            exit 1
+          fi
+          
+          echo "✅ OrchestratorService API tests passed!"
+
+      - name: Test AgentService Authentication
+        run: |
+          echo "Testing AgentService authentication requirements..."
+          
+          # Test weather forecast endpoint (should require auth)
+          echo "✅ Testing /weatherforecast endpoint without auth..."
+          response=$(curl -s -o /dev/null -w "%{http_code}" --retry 3 --retry-delay 5 --max-time 30 \
+            "${{ env.AGENT_URL }}/weatherforecast")
+          
+          if [ "$response" != "401" ]; then
+            echo "❌ AgentService should require authentication, got HTTP $response"
+            exit 1
+          fi
+          
+          echo "✅ AgentService authentication requirements verified!"
+
+  performance-tests:
+    name: Performance Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: health-checks
+    if: (github.event.inputs.test_suite == 'all' || github.event.inputs.test_suite == 'performance') || github.event_name == 'workflow_run'
+    
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@c6295a65d1254861815972266d5933fd6e532bdf # v2.10.1
+        with:
+          egress-policy: audit
+          
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Install performance testing tools
+        run: |
+          # Install Apache Bench for load testing
+          sudo apt-get update
+          sudo apt-get install -y apache2-utils
+          
+          # Install curl for response time testing
+          curl --version
+
+      - name: Performance Test - OrchestratorService
+        run: |
+          echo "Running performance tests for OrchestratorService..."
+          
+          # Response time test
+          echo "✅ Testing response time..."
+          response_time=$(curl -s -o /dev/null -w "%{time_total}" --max-time 30 \
+            "${{ env.ORCHESTRATOR_URL }}/health")
+          
+          # Convert to milliseconds for easier comparison
+          response_time_ms=$(echo "$response_time * 1000" | bc -l | cut -d. -f1)
+          
+          echo "Response time: ${response_time_ms}ms"
+          
+          if [ "$response_time_ms" -gt 5000 ]; then
+            echo "❌ Response time too slow: ${response_time_ms}ms (max 5000ms)"
+            exit 1
+          fi
+          
+          # Light load test (10 concurrent requests, 50 total)
+          echo "✅ Running light load test..."
+          ab_result=$(ab -n 50 -c 10 -q "${{ env.ORCHESTRATOR_URL }}/health" 2>&1)
+          
+          # Extract key metrics
+          failed_requests=$(echo "$ab_result" | grep "Failed requests" | awk '{print $3}')
+          mean_time=$(echo "$ab_result" | grep "Time per request" | head -1 | awk '{print $4}')
+          
+          echo "Failed requests: $failed_requests"
+          echo "Mean response time: ${mean_time}ms"
+          
+          if [ "$failed_requests" -gt 5 ]; then
+            echo "❌ Too many failed requests: $failed_requests (max 5)"
+            exit 1
+          fi
+          
+          echo "✅ OrchestratorService performance tests passed!"
+
+      - name: Performance Test - WebApp Load Time
+        run: |
+          echo "Testing WebApp load time..."
+          
+          # Measure full page load time
+          echo "✅ Testing page load time..."
+          load_time=$(curl -s -o /dev/null -w "%{time_total}" --max-time 30 \
+            "${{ env.WEBAPP_URL }}")
+          
+          # Convert to milliseconds
+          load_time_ms=$(echo "$load_time * 1000" | bc -l | cut -d. -f1)
+          
+          echo "Page load time: ${load_time_ms}ms"
+          
+          if [ "$load_time_ms" -gt 10000 ]; then
+            echo "❌ Page load time too slow: ${load_time_ms}ms (max 10000ms)"
+            exit 1
+          fi
+          
+          echo "✅ WebApp performance tests passed!"
+
+  security-checks:
+    name: Security Checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: health-checks
+    if: (github.event.inputs.test_suite == 'all' || github.event.inputs.test_suite == 'integration') || github.event_name == 'workflow_run'
+    
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@c6295a65d1254861815972266d5933fd6e532bdf # v2.10.1
+        with:
+          egress-policy: audit
+          
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Test HTTPS Enforcement
+        run: |
+          echo "Testing HTTPS enforcement..."
+          
+          # Test OrchestratorService HTTPS
+          echo "✅ Testing OrchestratorService HTTPS..."
+          response=$(curl -s -I "${{ env.ORCHESTRATOR_URL }}/health")
+          
+          if ! echo "$response" | grep -q "HTTP/2 200"; then
+            echo "❌ OrchestratorService not using HTTPS/2"
+            exit 1
+          fi
+          
+          # Test WebApp HTTPS
+          echo "✅ Testing WebApp HTTPS..."
+          response=$(curl -s -I "${{ env.WEBAPP_URL }}")
+          
+          if ! echo "$response" | grep -q -E "(HTTP/2|HTTPS)"; then
+            echo "❌ WebApp not properly secured"
+            exit 1
+          fi
+          
+          echo "✅ HTTPS enforcement verified!"
+
+      - name: Test Security Headers
+        run: |
+          echo "Testing security headers..."
+          
+          # Test OrchestratorService security headers
+          echo "✅ Testing OrchestratorService security headers..."
+          headers=$(curl -s -I "${{ env.ORCHESTRATOR_URL }}/health")
+          
+          # Check for basic security headers
+          if ! echo "$headers" | grep -qi "strict-transport-security"; then
+            echo "⚠️  Warning: Missing HSTS header in OrchestratorService"
+          fi
+          
+          # Test WebApp security headers (Firebase Hosting provides these)
+          echo "✅ Testing WebApp security headers..."
+          headers=$(curl -s -I "${{ env.WEBAPP_URL }}")
+          
+          if ! echo "$headers" | grep -qi "x-frame-options"; then
+            echo "⚠️  Warning: Missing X-Frame-Options header in WebApp"
+          fi
+          
+          echo "✅ Security header checks completed!"
+
+  report-results:
+    name: Report Results
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: [health-checks, api-functional-tests, performance-tests, security-checks]
+    if: always()
+    
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@c6295a65d1254861815972266d5933fd6e532bdf # v2.10.1
+        with:
+          egress-policy: audit
+          
+      - name: Generate Test Report
+        run: |
+          echo "# 🚀 Deployment Smoke Test Results" > test-report.md
+          echo "" >> test-report.md
+          echo "**Test Run:** $(date -u)" >> test-report.md
+          echo "**Environment:** ${{ github.event.inputs.environment || 'production' }}" >> test-report.md
+          echo "**Test Suite:** ${{ github.event.inputs.test_suite || 'all' }}" >> test-report.md
+          echo "" >> test-report.md
+          
+          # Health checks results
+          if [ "${{ needs.health-checks.result }}" == "success" ]; then
+            echo "✅ **Health Checks:** PASSED" >> test-report.md
+          else
+            echo "❌ **Health Checks:** FAILED" >> test-report.md
+          fi
+          
+          # API functional tests results
+          if [ "${{ needs.api-functional-tests.result }}" == "success" ]; then
+            echo "✅ **API Functional Tests:** PASSED" >> test-report.md
+          elif [ "${{ needs.api-functional-tests.result }}" == "skipped" ]; then
+            echo "⏭️ **API Functional Tests:** SKIPPED" >> test-report.md
+          else
+            echo "❌ **API Functional Tests:** FAILED" >> test-report.md
+          fi
+          
+          # Performance tests results
+          if [ "${{ needs.performance-tests.result }}" == "success" ]; then
+            echo "✅ **Performance Tests:** PASSED" >> test-report.md
+          elif [ "${{ needs.performance-tests.result }}" == "skipped" ]; then
+            echo "⏭️ **Performance Tests:** SKIPPED" >> test-report.md
+          else
+            echo "❌ **Performance Tests:** FAILED" >> test-report.md
+          fi
+          
+          # Security checks results
+          if [ "${{ needs.security-checks.result }}" == "success" ]; then
+            echo "✅ **Security Checks:** PASSED" >> test-report.md
+          elif [ "${{ needs.security-checks.result }}" == "skipped" ]; then
+            echo "⏭️ **Security Checks:** SKIPPED" >> test-report.md
+          else
+            echo "❌ **Security Checks:** FAILED" >> test-report.md
+          fi
+          
+          echo "" >> test-report.md
+          echo "## Service URLs Tested" >> test-report.md
+          echo "- **OrchestratorService:** ${{ env.ORCHESTRATOR_URL }}" >> test-report.md
+          echo "- **AgentService:** ${{ env.AGENT_URL }}" >> test-report.md
+          echo "- **WebApp:** ${{ env.WEBAPP_URL }}" >> test-report.md
+          
+          echo "" >> test-report.md
+          echo "---" >> test-report.md
+          echo "*Generated by GitHub Actions Deployment Smoke Tests*" >> test-report.md
+          
+          cat test-report.md
+
+      - name: Upload Test Report
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
+        with:
+          name: smoke-test-report
+          path: test-report.md
+          retention-days: 30
+
+      - name: Check Overall Success
+        run: |
+          if [ "${{ needs.health-checks.result }}" != "success" ]; then
+            echo "❌ Critical health checks failed - deployment validation unsuccessful"
+            exit 1
+          fi
+          
+          echo "✅ Deployment smoke tests completed successfully!"
