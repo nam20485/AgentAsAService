@@ -1,0 +1,125 @@
+# Dependabot configuration for automated dependency updates
+# https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+
+version: 2
+updates:
+  # .NET dependencies
+  - package-ecosystem: "nuget"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "Etc/UTC"
+    open-pull-requests-limit: 10
+    target-branch: "main"
+    reviewers:
+      - "nam20485"
+    assignees:
+      - "nam20485"
+    commit-message:
+      prefix: "chore(deps)"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "security"
+    groups:
+      production-dependencies:
+        patterns:
+          - "*"
+        exclude-patterns:
+          - "*.Test*"
+          - "*.Tests*"
+      development-dependencies:
+        patterns:
+          - "*.Test*"
+          - "*.Tests*"
+        update-types:
+          - "minor"
+          - "patch"
+
+  # Docker dependencies
+  - package-ecosystem: "docker"
+    directory: "/AgentService"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:30"
+      timezone: "Etc/UTC"
+    open-pull-requests-limit: 5
+    target-branch: "main"
+    reviewers:
+      - "nam20485"
+    assignees:
+      - "nam20485"
+    commit-message:
+      prefix: "chore(docker)"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "docker"
+      - "security"
+
+  - package-ecosystem: "docker"
+    directory: "/OrchestratorService"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:30"
+      timezone: "Etc/UTC"
+    open-pull-requests-limit: 5
+    target-branch: "main"
+    reviewers:
+      - "nam20485"
+    assignees:
+      - "nam20485"
+    commit-message:
+      prefix: "chore(docker)"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "docker"
+      - "security"
+
+  - package-ecosystem: "docker"
+    directory: "/OrchestratorWebApp"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:30"
+      timezone: "Etc/UTC"
+    open-pull-requests-limit: 5
+    target-branch: "main"
+    reviewers:
+      - "nam20485"
+    assignees:
+      - "nam20485"
+    commit-message:
+      prefix: "chore(docker)"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "docker"
+      - "security"
+
+  # GitHub Actions dependencies
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "07:00"
+      timezone: "Etc/UTC"
+    open-pull-requests-limit: 5
+    target-branch: "main"
+    reviewers:
+      - "nam20485"
+    assignees:
+      - "nam20485"
+    commit-message:
+      prefix: "chore(actions)"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "github-actions"
+      - "security"
