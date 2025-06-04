@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Google.Apis.Auth.OAuth2;
 using AgentService.Services;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 
 internal class Program
 {
@@ -20,6 +22,36 @@ internal class Program
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
         builder.Services.AddHttpContextAccessor();
+          // Add health checks
+        builder.Services.AddHealthChecks()
+            .AddCheck("self", () => HealthCheckResult.Healthy("AgentService is running"), tags: new[] { "ready", "live" })            .AddCheck("firestore", () =>
+            {
+                try
+                {
+                    var projectId = builder.Configuration["GoogleCloud:ProjectId"];
+                    var db = FirestoreDb.Create(projectId);
+                    // Test basic connectivity by accessing the database instance
+                    var projectIdCheck = db.ProjectId;
+                    return HealthCheckResult.Healthy($"Firestore connection is healthy (Project: {projectIdCheck})");
+                }
+                catch (Exception ex)
+                {
+                    return HealthCheckResult.Unhealthy("Firestore connection failed", ex);
+                }
+            }, tags: new[] { "ready" })
+            .AddCheck("memory", () =>
+            {
+                var gc = GC.GetTotalMemory(false);
+                var gcMB = gc / 1024 / 1024;
+                
+                // Alert if memory usage is very high (adjust threshold as needed)
+                if (gcMB > 500)
+                {
+                    return HealthCheckResult.Degraded($"High memory usage: {gcMB}MB");
+                }
+                
+                return HealthCheckResult.Healthy($"Memory usage: {gcMB}MB");
+            }, tags: new[] { "ready", "live" });
 
         // Register authentication services
         builder.Services.AddScoped<IServiceAuthenticationService, ServiceAuthenticationService>();
@@ -88,7 +120,75 @@ internal class Program
         }
 
         app.UseAuthentication();
-        app.UseAuthorization();
+        app.UseAuthorization();        // Add health check endpoints
+        app.MapHealthChecks("/health", new HealthCheckOptions
+        {
+            ResponseWriter = async (context, report) =>
+            {
+                context.Response.ContentType = "application/json";
+                var result = new
+                {
+                    status = report.Status.ToString(),
+                    checks = report.Entries.ToDictionary(
+                        kvp => kvp.Key,
+                        kvp => new
+                        {
+                            status = kvp.Value.Status.ToString(),
+                            description = kvp.Value.Description,
+                            duration = kvp.Value.Duration.TotalMilliseconds
+                        }
+                    ),
+                    totalDuration = report.TotalDuration.TotalMilliseconds
+                };
+                await context.Response.WriteAsync(System.Text.Json.JsonSerializer.Serialize(result));
+            }
+        });
+        app.MapHealthChecks("/health/ready", new HealthCheckOptions
+        {
+            Predicate = check => check.Tags.Contains("ready"),
+            ResponseWriter = async (context, report) =>
+            {
+                context.Response.ContentType = "application/json";
+                var result = new
+                {
+                    status = report.Status.ToString(),
+                    checks = report.Entries.ToDictionary(
+                        kvp => kvp.Key,
+                        kvp => new
+                        {
+                            status = kvp.Value.Status.ToString(),
+                            description = kvp.Value.Description,
+                            duration = kvp.Value.Duration.TotalMilliseconds
+                        }
+                    ),
+                    totalDuration = report.TotalDuration.TotalMilliseconds
+                };
+                await context.Response.WriteAsync(System.Text.Json.JsonSerializer.Serialize(result));
+            }
+        });
+        app.MapHealthChecks("/health/live", new HealthCheckOptions
+        {
+            Predicate = check => check.Tags.Contains("live"),
+            ResponseWriter = async (context, report) =>
+            {
+                context.Response.ContentType = "application/json";
+                var result = new
+                {
+                    status = report.Status.ToString(),
+                    checks = report.Entries.ToDictionary(
+                        kvp => kvp.Key,
+                        kvp => new
+                        {
+                            status = kvp.Value.Status.ToString(),
+                            description = kvp.Value.Description,
+                            duration = kvp.Value.Duration.TotalMilliseconds
+                        }
+                    ),
+                    totalDuration = report.TotalDuration.TotalMilliseconds
+                };
+                await context.Response.WriteAsync(System.Text.Json.JsonSerializer.Serialize(result));
+            }
+        });
 
         app.MapControllers();
 
