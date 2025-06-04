@@ -1,0 +1,119 @@
+name: "Container Security Scanning"
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - '**/Dockerfile*'
+      - '.github/workflows/container-security.yml'
+  pull_request:
+    branches: [ "main" ]
+    paths:
+      - '**/Dockerfile*'
+      - '.github/workflows/container-security.yml'
+  schedule:
+    - cron: '0 3 * * 2' # Weekly on Tuesdays at 3 AM UTC
+
+env:
+  DOTNET_SDK_VERSION: 9.0.300
+  NODE_VERSION: lts
+
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+
+jobs:
+  container-scan:
+    name: Container Security Scan
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        service: 
+          - name: "AgentService"
+            dockerfile: "AgentService/Dockerfile"
+            context: "."
+          - name: "OrchestratorService" 
+            dockerfile: "OrchestratorService/Dockerfile"
+            context: "."
+          - name: "OrchestratorWebApp"
+            dockerfile: "OrchestratorWebApp/Dockerfile"
+            context: "."
+
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@c6295a65d1254861815972266d5933fd6e532bdf # v2.11.1
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@6bd8b7f7774af54e05809fcc5431931b3eb1ddee # v4.0.1
+        with:
+          dotnet-version: ${{ env.DOTNET_SDK_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup problem matchers
+        run: |
+          echo "::add-matcher::.github/problem-matchers/dotnet.json"
+
+      # Build the Docker image for scanning
+      - name: Build Docker image
+        run: |
+          docker build -f ${{ matrix.service.dockerfile }} -t ${{ matrix.service.name }}:latest ${{ matrix.service.context }}
+
+      # Run Trivy vulnerability scanner on the built image
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@6e7b7d1fd3e4fef0c5fa8cce1229c54b2c9bd0d8 # v0.24.0
+        with:
+          image-ref: '${{ matrix.service.name }}:latest'
+          format: 'sarif'
+          output: 'trivy-results-${{ matrix.service.name }}.sarif'
+
+      # Upload Trivy scan results to GitHub Security tab
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@e2b3eafc8d227b0241d48be5f425d47c2d750a13 # v3.26.10
+        if: always()
+        with:
+          sarif_file: 'trivy-results-${{ matrix.service.name }}.sarif'
+          category: 'trivy-${{ matrix.service.name }}'
+
+      # Also scan the Dockerfile for misconfigurations
+      - name: Run Trivy config scanner on Dockerfile
+        uses: aquasecurity/trivy-action@6e7b7d1fd3e4fef0c5fa8cce1229c54b2c9bd0d8 # v0.24.0
+        with:
+          scan-type: 'config'
+          scan-ref: '${{ matrix.service.dockerfile }}'
+          format: 'sarif'
+          output: 'trivy-config-${{ matrix.service.name }}.sarif'
+
+      # Upload Dockerfile scan results
+      - name: Upload Dockerfile scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@e2b3eafc8d227b0241d48be5f425d47c2d750a13 # v3.26.10
+        if: always()
+        with:
+          sarif_file: 'trivy-config-${{ matrix.service.name }}.sarif'
+          category: 'trivy-config-${{ matrix.service.name }}'
+
+      # Generate human-readable report for workflow logs
+      - name: Generate Trivy report for logs
+        uses: aquasecurity/trivy-action@6e7b7d1fd3e4fef0c5fa8cce1229c54b2c9bd0d8 # v0.24.0
+        with:
+          image-ref: '${{ matrix.service.name }}:latest'
+          format: 'table'
+          severity: 'CRITICAL,HIGH'
+
+      # Clean up the built image to save space
+      - name: Clean up Docker image
+        if: always()
+        run: |
+          docker rmi ${{ matrix.service.name }}:latest || true
