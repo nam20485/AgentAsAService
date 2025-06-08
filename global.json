@@ -1,10 +1,10 @@
 {
   "sdk": {
-    "version": "9.0.300",
+    "version": "9.0.201",
     "rollForward": "latestMinor",
     "allowPrerelease": false
   },
   "msbuild-sdks": {
-    "Microsoft.NET.Sdk.WebAssembly": "9.0.300"
+    "Microsoft.NET.Sdk.WebAssembly": "9.0.201"
   }
 }
