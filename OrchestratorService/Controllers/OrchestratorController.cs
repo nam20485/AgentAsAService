@@ -1,6 +1,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Google.Cloud.Firestore;
+using SharedLib.DTOs;
+using SharedLib.Model;
+using OrchestratorService.Services;
 
 namespace OrchestratorService.Controllers;
 
@@ -16,17 +19,20 @@ public class OrchestratorController : ControllerBase
     private readonly ILogger<OrchestratorController> _logger;
     private readonly IConfiguration _configuration;
     private readonly IHttpClientFactory _httpClientFactory;
+    private readonly IFirestoreService _firestoreService;
 
     public OrchestratorController(
         FirestoreDb firestoreDb,
         ILogger<OrchestratorController> logger,
         IConfiguration configuration,
-        IHttpClientFactory httpClientFactory)
+        IHttpClientFactory httpClientFactory,
+        IFirestoreService firestoreService)
     {
         _firestoreDb = firestoreDb;
         _logger = logger;
         _configuration = configuration;
         _httpClientFactory = httpClientFactory;
+        _firestoreService = firestoreService;
     }
 
     /// <summary>
@@ -165,6 +171,84 @@ public class OrchestratorController : ControllerBase
             return StatusCode(500, "Internal server error");
         }
     }
+
+    /// <summary>Create a new orchestrator</summary>
+    [HttpPost("orchestrators")]
+    public async Task<IActionResult> CreateOrchestrator([FromBody] CreateOrchestratorRequest request)
+    {
+        try
+        {
+            var orchestrator = await _firestoreService.CreateOrchestratorAsync(request);
+            
+            var response = new OrchestratorResponse
+            {
+                Id = orchestrator.Id,
+                Name = orchestrator.Name,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            return CreatedAtAction(nameof(GetOrchestrator), new { id = orchestrator.Id }, response);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating orchestrator");
+            return BadRequest(new { error = ex.Message });
+        }
+    }
+
+    /// <summary>Get all orchestrators</summary>
+    [HttpGet("orchestrators")]
+    public async Task<IActionResult> GetOrchestrators()
+    {
+        try
+        {
+            var orchestrators = await _firestoreService.GetAllOrchestratorsAsync();
+            
+            var responses = orchestrators.Select(o => new OrchestratorResponse
+            {
+                Id = o.Id,
+                Name = o.Name,
+                CreatedAt = DateTime.UtcNow
+            }).ToList();
+
+            return Ok(responses);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving orchestrators");
+            return BadRequest(new { error = ex.Message });
+        }
+    }
+
+    /// <summary>Get an orchestrator by ID</summary>
+    [HttpGet("orchestrators/{id}")]
+    public async Task<IActionResult> GetOrchestrator(string id)
+    {
+        try
+        {
+            var orchestrators = await _firestoreService.GetAllOrchestratorsAsync();
+            var orchestrator = orchestrators.FirstOrDefault(o => o.Id == id);
+
+            if (orchestrator == null)
+            {
+                return NotFound(new { error = "Orchestrator not found" });
+            }
+
+            var response = new OrchestratorResponse
+            {
+                Id = orchestrator.Id,
+                Name = orchestrator.Name,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            return Ok(response);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving orchestrator");
+            return BadRequest(new { error = ex.Message });
+        }
+    }
 }
 
 /// <summary>
@@ -177,3 +261,5 @@ public class CreateOrchestrationRequest
     public string? Branch { get; set; }
     public Dictionary<string, object>? Configuration { get; set; }
 }
+
+
