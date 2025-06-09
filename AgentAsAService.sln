@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OrchestratorWebApp", "Orche
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharedLib", "SharedLib\SharedLib.csproj", "{76A8A626-17E9-4348-A153-375BF5DE00F5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DesktopClient", "DesktopClient\DesktopClient.csproj", "{487817BE-5407-4B4E-AEAD-69A5C7929D3C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -69,6 +71,18 @@ Global
 		{76A8A626-17E9-4348-A153-375BF5DE00F5}.Release|x64.Build.0 = Release|Any CPU
 		{76A8A626-17E9-4348-A153-375BF5DE00F5}.Release|x86.ActiveCfg = Release|Any CPU
 		{76A8A626-17E9-4348-A153-375BF5DE00F5}.Release|x86.Build.0 = Release|Any CPU
+		{487817BE-5407-4B4E-AEAD-69A5C7929D3C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{487817BE-5407-4B4E-AEAD-69A5C7929D3C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{487817BE-5407-4B4E-AEAD-69A5C7929D3C}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{487817BE-5407-4B4E-AEAD-69A5C7929D3C}.Debug|x64.Build.0 = Debug|Any CPU
+		{487817BE-5407-4B4E-AEAD-69A5C7929D3C}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{487817BE-5407-4B4E-AEAD-69A5C7929D3C}.Debug|x86.Build.0 = Debug|Any CPU
+		{487817BE-5407-4B4E-AEAD-69A5C7929D3C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{487817BE-5407-4B4E-AEAD-69A5C7929D3C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{487817BE-5407-4B4E-AEAD-69A5C7929D3C}.Release|x64.ActiveCfg = Release|Any CPU
+		{487817BE-5407-4B4E-AEAD-69A5C7929D3C}.Release|x64.Build.0 = Release|Any CPU
+		{487817BE-5407-4B4E-AEAD-69A5C7929D3C}.Release|x86.ActiveCfg = Release|Any CPU
+		{487817BE-5407-4B4E-AEAD-69A5C7929D3C}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
