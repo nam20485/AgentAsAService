@@ -27,6 +27,9 @@ internal class Program
         // Register HTTP client services
         builder.Services.AddHttpClient<IAgentHttpClientService, AgentHttpClientService>();
 
+        // Register Firestore service
+        builder.Services.AddScoped<IFirestoreService, FirestoreService>();
+
         // Add Google Cloud Firestore
         builder.Services.AddSingleton(provider =>
         {

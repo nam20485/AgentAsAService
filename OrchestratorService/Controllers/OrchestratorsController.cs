@@ -22,8 +22,7 @@ public class OrchestratorsController : ControllerBase
     /// <summary>Create a new orchestrator</summary>
     [HttpPost]
     public async Task<IActionResult> CreateOrchestrator([FromBody] CreateOrchestratorRequest request)
-    {
-        try
+    {        try
         {
             var orchestrator = await _firestoreService.CreateOrchestratorAsync(request);
             
@@ -31,7 +30,7 @@ public class OrchestratorsController : ControllerBase
             {
                 Id = orchestrator.Id,
                 Name = orchestrator.Name,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = orchestrator.CreatedAt
             };
 
             return CreatedAtAction(nameof(GetOrchestrator), new { id = orchestrator.Id }, response);
@@ -55,7 +54,7 @@ public class OrchestratorsController : ControllerBase
             {
                 Id = o.Id,
                 Name = o.Name,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = o.CreatedAt
             }).ToList();
 
             return Ok(responses);
@@ -79,13 +78,11 @@ public class OrchestratorsController : ControllerBase
             if (orchestrator == null)
             {
                 return NotFound(new { error = "Orchestrator not found" });
-            }
-
-            var response = new OrchestratorResponse
+            }            var response = new OrchestratorResponse
             {
                 Id = orchestrator.Id,
                 Name = orchestrator.Name,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = orchestrator.CreatedAt
             };
 
             return Ok(response);
