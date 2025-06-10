@@ -7,7 +7,7 @@ on: pull_request
 env:
   DOTNET_SDK_VERSION: 9.0.300  
   FIREBASE_CLI_VERSION: 14.4.0
-  NODE_VERSION: lts
+  NODE_VERSION: 24.2.0
 
 permissions:
   checks: write
