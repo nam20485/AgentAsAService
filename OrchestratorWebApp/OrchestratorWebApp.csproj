@@ -12,6 +12,11 @@
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="9.0.5" PrivateAssets="all" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" Version="9.0.5" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.5" />
+    <PackageReference Include="Radzen.Blazor" Version="7.0.8" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Services\" />
   </ItemGroup>
 
   <Target Name="Install/Update Workload wasm-tools" BeforeTargets="PreBuildEvent">
@@ -32,10 +37,8 @@
     <PropertyGroup>
       <_WasmToolsInstalled Condition="'@(_WasmToolsLine)' != ''">true</_WasmToolsInstalled>
     </PropertyGroup>
-    <Message Text=".NET workload '$(WasmToolsWorkloadId)' installed status: $(_WasmToolsInstalled). Installing wasm-tools workload...." 
-             Condition="'$(_WasmToolsInstalled)' == 'false'" Importance="high" />
-    <Message Text=".NET workload '$(WasmToolsWorkloadId)' installed status: $(_WasmToolsInstalled). Not installing wasm-tools workload." 
-             Condition="'$(_WasmToolsInstalled)' == 'true'" Importance="high" />
+    <Message Text=".NET workload '$(WasmToolsWorkloadId)' installed status: $(_WasmToolsInstalled). Installing wasm-tools workload...." Condition="'$(_WasmToolsInstalled)' == 'false'" Importance="high" />
+    <Message Text=".NET workload '$(WasmToolsWorkloadId)' installed status: $(_WasmToolsInstalled). Not installing wasm-tools workload." Condition="'$(_WasmToolsInstalled)' == 'true'" Importance="high" />
     <!-- Conditionally run the install command -->
     <Exec Command="dotnet workload install $(WasmToolsWorkloadId)" Condition="'$(_WasmToolsInstalled)' == 'false'" />
     <!-- <Exec Command="dotnet workload update Condition="'$(_WasmToolsInstalled)' == 'true'" /> -->

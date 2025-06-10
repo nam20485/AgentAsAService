@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
 using OrchestratorWebApp;
-using OrchestratorWebApp.Services;
+using Radzen;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
@@ -31,7 +31,7 @@ builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().Cre
 // Register authorization message handler
 builder.Services.AddScoped<BaseAddressAuthorizationMessageHandler>();
 
-// Register application services
-builder.Services.AddScoped<IOrchestratorApiService, OrchestratorApiService>();
+// Register Radzen components
+builder.Services.AddRadzenComponents();
 
 await builder.Build().RunAsync();
