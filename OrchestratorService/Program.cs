@@ -19,7 +19,39 @@ internal class Program
         // Add services to the container.
         builder.Services.AddControllers();
         builder.Services.AddEndpointsApiExplorer();
-        builder.Services.AddSwaggerGen();
+        builder.Services.AddSwaggerGen(c =>
+        {
+            c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo 
+            { 
+                Title = "Orchestrator Service API", 
+                Version = "v1" 
+            });
+            
+            // Add JWT authentication to Swagger
+            c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+            {
+                Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
+                Name = "Authorization",
+                In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+                Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey,
+                Scheme = "Bearer"
+            });
+            
+            c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+            {
+                {
+                    new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+                    {
+                        Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                        {
+                            Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                            Id = "Bearer"
+                        }
+                    },
+                    new string[] {}
+                }
+            });
+        });
 
         // Add HTTP client factory
         builder.Services.AddHttpClient();
@@ -56,8 +88,18 @@ internal class Program
         // Add Authorization
         builder.Services.AddAuthorization(options =>
         {
-            options.AddPolicy("RequireAuthenticatedUser", policy =>
-                policy.RequireAuthenticatedUser());
+            if (builder.Environment.IsDevelopment())
+            {
+                // In development, allow all requests to bypass authentication for easier testing
+                options.AddPolicy("RequireAuthenticatedUser", policy =>
+                    policy.RequireAssertion(_ => true)); // Always allow in development
+            }
+            else
+            {
+                // Production authentication policy
+                options.AddPolicy("RequireAuthenticatedUser", policy =>
+                    policy.RequireAuthenticatedUser());
+            }
         });
 
         // Add CORS for Blazor WebAssembly

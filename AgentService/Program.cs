@@ -15,12 +15,42 @@ internal class Program
 
         // Configure Kestrel to use the PORT environment variable if available
         var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
-        builder.WebHost.UseUrls($"http://*:{port}");
-
-        // Add services to the container.
+        builder.WebHost.UseUrls($"http://*:{port}");        // Add services to the container.
         builder.Services.AddControllers();
         builder.Services.AddEndpointsApiExplorer();
-        builder.Services.AddSwaggerGen();
+        builder.Services.AddSwaggerGen(c =>
+        {
+            c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo 
+            { 
+                Title = "Agent Service API", 
+                Version = "v1" 
+            });
+            
+            // Add JWT authentication to Swagger
+            c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+            {
+                Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
+                Name = "Authorization",
+                In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+                Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey,
+                Scheme = "Bearer"
+            });
+            
+            c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+            {
+                {
+                    new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+                    {
+                        Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                        {
+                            Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                            Id = "Bearer"
+                        }
+                    },
+                    new string[] {}
+                }
+            });
+        });
         builder.Services.AddHttpContextAccessor();
           // Add health checks
         builder.Services.AddHealthChecks()
@@ -96,12 +126,25 @@ internal class Program
         // Add Authorization policies
         builder.Services.AddAuthorization(options =>
         {
-            options.AddPolicy("RequireServiceAuthentication", policy =>
-                policy.RequireAuthenticatedUser()
-                      .AddAuthenticationSchemes("ServiceToService", "GoogleServiceAccount"));
-            
-            options.AddPolicy("RequireOrchestratorService", policy =>
-                policy.RequireClaim("email", builder.Configuration["AgentService:AllowedServiceEmails"]?.Split(',') ?? Array.Empty<string>()));
+            if (builder.Environment.IsDevelopment())
+            {
+                // In development, allow all requests to bypass authentication for easier testing
+                options.AddPolicy("RequireServiceAuthentication", policy =>
+                    policy.RequireAssertion(_ => true)); // Always allow in development
+                
+                options.AddPolicy("RequireOrchestratorService", policy =>
+                    policy.RequireAssertion(_ => true)); // Always allow in development
+            }
+            else
+            {
+                // Production authentication policies
+                options.AddPolicy("RequireServiceAuthentication", policy =>
+                    policy.RequireAuthenticatedUser()
+                          .AddAuthenticationSchemes("ServiceToService", "GoogleServiceAccount"));
+                
+                options.AddPolicy("RequireOrchestratorService", policy =>
+                    policy.RequireClaim("email", builder.Configuration["AgentService:AllowedServiceEmails"]?.Split(',') ?? Array.Empty<string>()));
+            }
         });
 
         var app = builder.Build();

@@ -1,5 +1,7 @@
 using Google.Apis.Auth.OAuth2;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 
 namespace AgentService.Services;
 
@@ -47,6 +49,15 @@ public class ServiceAuthenticationService : IServiceAuthenticationService
     public bool IsAuthorized(string[] allowedEmails)
     {
         var context = _httpContextAccessor.HttpContext;
+        
+        // In development, check if we're in development environment
+        var environment = context?.RequestServices.GetService<IWebHostEnvironment>();
+        if (environment?.IsDevelopment() == true)
+        {
+            _logger.LogInformation("Development mode: bypassing authentication check");
+            return true;
+        }
+        
         if (context?.User?.Identity?.IsAuthenticated != true)
         {
             _logger.LogWarning("User is not authenticated");
