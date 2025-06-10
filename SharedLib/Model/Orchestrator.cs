@@ -11,4 +11,6 @@ public class Orchestrator : Agent
     public Orchestrator(string name) : base(name)
     {
     }
+
+    public DateTime CreatedAt { get; set; }
 }

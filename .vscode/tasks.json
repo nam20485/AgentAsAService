@@ -1,0 +1,80 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "build",
+			"command": "dotnet",
+			"type": "shell",
+			"args": [
+				"build",
+				"AgentAsAService.sln"
+			],
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
+			"problemMatcher": [
+				"$msCompile"
+			]
+		},
+		{
+			"type": "dotnet",
+			"task": "watch OrchestratorService",
+			"file": "${workspaceFolder}/OrchestratorService/OrchestratorService.csproj",
+			"problemMatcher": [],
+			"label": "dotnet: watch OrchestratorService"
+		},
+		{
+			"label": "docker-build: orchestratorservice",
+			"type": "docker-build",
+			"dockerBuild": {
+				"dockerfile": "${workspaceFolder}/OrchestratorService/Dockerfile",
+				"context": "${workspaceFolder}",
+				"pull": true,
+				"tag": "orchestratorservice:latest"
+			},
+			"netCore": {
+				"appProject": "${workspaceFolder}/OrchestratorService/OrchestratorService.csproj"
+			}
+		},
+		{
+			"label": "docker-compose: up orchestratorservice debug",
+			"type": "shell",
+			"command": "docker-compose",
+			"args": [
+				"-f",
+				"docker-compose.yml",
+				"-f",
+				"docker-compose.debug.yml",
+				"up",
+				"-d",
+				"--build",
+				"orchestratorservice"
+			],
+			"options": {
+				"cwd": "${workspaceFolder}"
+			},
+			"group": "build",
+			"problemMatcher": []
+		},
+		{
+			"label": "docker-compose: up all debug",
+			"type": "shell",
+			"command": "docker-compose",
+			"args": [
+				"-f",
+				"docker-compose.yml",
+				"-f",
+				"docker-compose.debug.yml",
+				"up",
+				"-d",
+				"--build"
+			],
+			"options": {
+				"cwd": "${workspaceFolder}"
+			},
+			"group": "build",
+			"problemMatcher": []
+		}
+	]
+}
