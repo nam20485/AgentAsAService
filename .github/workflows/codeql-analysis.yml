@@ -2,11 +2,11 @@ name: "CodeQL Security Analysis"
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "development" ]
   pull_request:
-    branches: [ "main" ]
-  schedule:
-    - cron: '0 2 * * 1' # Weekly on Mondays at 2 AM UTC
+    branches: [ "main", "development" ]
+  # schedule:
+  #   - cron: '0 2 * * 1' # Weekly on Mondays at 2 AM UTC
 
 permissions:
   actions: read
