@@ -2,6 +2,7 @@ using System;
 using Microsoft.AspNetCore.Mvc;
 using SharedLib.DTOs;
 using SharedLib.Model;
+using SharedLib.Abstractions.Stores;
 using OrchestratorService.Services;
 
 namespace OrchestratorService.Controllers;
@@ -10,11 +11,13 @@ namespace OrchestratorService.Controllers;
 [ApiController]
 public class OrchestratorsController : ControllerBase
 {
-    private readonly IFirestoreService _firestoreService;
+    private readonly IOrchestratorStore _orchestratorStore;
+    private readonly IFirestoreService _firestoreService; // Keep for transition period
     private readonly ILogger<OrchestratorsController> _logger;
 
-    public OrchestratorsController(IFirestoreService firestoreService, ILogger<OrchestratorsController> logger)
+    public OrchestratorsController(IOrchestratorStore orchestratorStore, IFirestoreService firestoreService, ILogger<OrchestratorsController> logger)
     {
+        _orchestratorStore = orchestratorStore;
         _firestoreService = firestoreService;
         _logger = logger;
     }
@@ -24,7 +27,7 @@ public class OrchestratorsController : ControllerBase
     public async Task<IActionResult> CreateOrchestrator([FromBody] CreateOrchestratorRequest request)
     {        try
         {
-            var orchestrator = await _firestoreService.CreateOrchestratorAsync(request);
+            var orchestrator = await _orchestratorStore.CreateAsync(request);
             
             var response = new OrchestratorResponse
             {
@@ -34,6 +37,11 @@ public class OrchestratorsController : ControllerBase
             };
 
             return CreatedAtAction(nameof(GetOrchestrator), new { id = orchestrator.Id }, response);
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning(ex, "Validation error creating orchestrator");
+            return BadRequest(new { error = ex.Message });
         }
         catch (Exception ex)
         {
@@ -48,7 +56,7 @@ public class OrchestratorsController : ControllerBase
     {
         try
         {
-            var orchestrators = await _firestoreService.GetAllOrchestratorsAsync();
+            var orchestrators = await _orchestratorStore.GetAllAsync();
             
             var responses = orchestrators.Select(o => new OrchestratorResponse
             {
@@ -72,20 +80,19 @@ public class OrchestratorsController : ControllerBase
     {
         try
         {
-            var orchestrators = await _firestoreService.GetAllOrchestratorsAsync();
-            var orchestrator = orchestrators.FirstOrDefault(o => o.Id == id);
+            var orchestrator = await _orchestratorStore.GetByIdAsync(id);
 
             if (orchestrator == null)
             {
                 return NotFound(new { error = "Orchestrator not found" });
-            }            var response = new OrchestratorResponse
+            }
+
+            var response = new OrchestratorResponse
             {
                 Id = orchestrator.Id,
                 Name = orchestrator.Name,
                 CreatedAt = orchestrator.CreatedAt
-            };
-
-            return Ok(response);
+            };            return Ok(response);
         }
         catch (Exception ex)
         {

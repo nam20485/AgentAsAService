@@ -6,6 +6,7 @@ using Google.Apis.Auth.OAuth2;
 using AgentService.Services;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using SharedLib.Extensions;
 
 internal class Program
 {
@@ -86,7 +87,10 @@ internal class Program
         // Register authentication services
         builder.Services.AddScoped<IServiceAuthenticationService, ServiceAuthenticationService>();
 
-        // Add Google Cloud Firestore
+        // Add document store services for AgentSession management
+        builder.Services.AddDocumentStore(builder.Configuration);
+
+        // Add Google Cloud Firestore (legacy - still needed for health checks)
         builder.Services.AddSingleton(provider =>
         {
             var projectId = builder.Configuration["GoogleCloud:ProjectId"];

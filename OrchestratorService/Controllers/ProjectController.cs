@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SharedLib.Model;
 using SharedLib.DTOs;
+using SharedLib.Abstractions.Stores;
 using OrchestratorService.Services;
 
 namespace OrchestratorService.Controllers
@@ -11,11 +12,13 @@ namespace OrchestratorService.Controllers
     [ApiController]
     public class ProjectController : ControllerBase
     {
-        private readonly IFirestoreService _firestoreService;
+        private readonly IProjectStore _projectStore;
+        private readonly IFirestoreService _firestoreService; // Keep for orchestrator operations during transition
         private readonly ILogger<ProjectController> _logger;
 
-        public ProjectController(IFirestoreService firestoreService, ILogger<ProjectController> logger)
+        public ProjectController(IProjectStore projectStore, IFirestoreService firestoreService, ILogger<ProjectController> logger)
         {
+            _projectStore = projectStore;
             _firestoreService = firestoreService;
             _logger = logger;
         }
@@ -26,29 +29,57 @@ namespace OrchestratorService.Controllers
         {
             try
             {
-                var project = await _firestoreService.CreateProjectAsync(request);
+                // Create the project entity
+                var project = new Project
+                {
+                    Name = request.ProjectName,
+                    OrchestratorId = "", // Will be set after orchestrator creation
+                    Repository = new Repository
+                    {
+                        Name = request.RepositoryName,
+                        Address = request.RepositoryAddress
+                    }
+                };
+
+                // Create orchestrator first (using legacy service for now)
+                var orchestratorRequest = new CreateOrchestratorRequest
+                {
+                    Name = request.OrchestratorName
+                };
+                var orchestrator = await _firestoreService.CreateOrchestratorAsync(orchestratorRequest);
+                
+                // Set the orchestrator ID
+                project.OrchestratorId = orchestrator.Id;
+
+                // Save the project using the new store
+                var savedProject = await _projectStore.SaveAsync(project);
                 
                 var response = new ProjectResponse
                 {
-                    Id = project.Id,
-                    Name = project.Name,
-                    OrchestratorId = project.OrchestratorId,
+                    Id = savedProject.Id,
+                    Name = savedProject.Name,
+                    OrchestratorId = savedProject.OrchestratorId,
                     Repository = new RepositoryInfo
                     {
-                        Id = project.Repository?.Id ?? "",
-                        Name = project.Repository?.Name ?? "",
-                        Address = project.Repository?.Address ?? ""
+                        Id = savedProject.Repository?.Id ?? "",
+                        Name = savedProject.Repository?.Name ?? "",
+                        Address = savedProject.Repository?.Address ?? ""
                     },
                     Team = new TeamInfo
                     {
-                        Id = project.Team.Id,
-                        Name = project.Team.Name,
-                        MemberCount = project.Team.Members.Count
+                        Id = savedProject.Team.Id,
+                        Name = savedProject.Team.Name,
+                        MemberCount = savedProject.Team.Members.Count
                     },
-                    CreatedAt = project.CreatedAt
+                    CreatedAt = savedProject.CreatedAt
                 };
 
-                return CreatedAtAction(nameof(GetProject), new { id = project.Id }, response);
+                return CreatedAtAction(nameof(GetProject), new { id = savedProject.Id }, response);
+            }
+            catch (ArgumentException ex)
+            {
+                _logger.LogWarning(ex, "Validation error creating project");
+                return BadRequest(new { error = ex.Message });
             }
             catch (Exception ex)
             {
@@ -63,7 +94,7 @@ namespace OrchestratorService.Controllers
         {
             try
             {
-                var projects = await _firestoreService.GetAllProjectsAsync();
+                var projects = await _projectStore.GetAllAsync();
                 
                 var responses = projects.Select(p => new ProjectResponse
                 {
@@ -100,7 +131,7 @@ namespace OrchestratorService.Controllers
         {
             try
             {
-                var project = await _firestoreService.GetProjectByIdAsync(id);
+                var project = await _projectStore.GetByIdAsync(id);
 
                 if (project == null)
                 {

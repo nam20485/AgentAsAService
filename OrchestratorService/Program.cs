@@ -5,6 +5,7 @@ using Microsoft.IdentityModel.Tokens;
 using OrchestratorService.Services;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using SharedLib.Extensions;
 
 internal class Program
 {
@@ -59,10 +60,13 @@ internal class Program
         // Register HTTP client services
         builder.Services.AddHttpClient<IAgentHttpClientService, AgentHttpClientService>();
 
-        // Register Firestore service
+        // Add document store services (replaces direct Firestore registration)
+        builder.Services.AddDocumentStore(builder.Configuration);
+
+        // Register legacy Firestore service (for gradual migration)
         builder.Services.AddScoped<IFirestoreService, FirestoreService>();
 
-        // Add Google Cloud Firestore
+        // Add Google Cloud Firestore (still needed for direct usage in some controllers)
         builder.Services.AddSingleton(provider =>
         {
             var projectId = builder.Configuration["GoogleCloud:ProjectId"];

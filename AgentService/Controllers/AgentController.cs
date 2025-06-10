@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using AgentService.Services;
-using Google.Cloud.Firestore;
+using SharedLib.Abstractions.Stores;
+using SharedLib.Model;
+using SharedLib.DTOs;
 
 namespace AgentService.Controllers;
 
@@ -14,18 +16,18 @@ namespace AgentService.Controllers;
 public class AgentController : ControllerBase
 {
     private readonly IServiceAuthenticationService _authService;
-    private readonly FirestoreDb _firestoreDb;
+    private readonly IAgentSessionStore _agentSessionStore;
     private readonly ILogger<AgentController> _logger;
     private readonly IConfiguration _configuration;
 
     public AgentController(
         IServiceAuthenticationService authService,
-        FirestoreDb firestoreDb,
+        IAgentSessionStore agentSessionStore,
         ILogger<AgentController> logger,
         IConfiguration configuration)
     {
         _authService = authService;
-        _firestoreDb = firestoreDb;
+        _agentSessionStore = agentSessionStore;
         _logger = logger;
         _configuration = configuration;
     }
@@ -63,9 +65,7 @@ public class AgentController : ControllerBase
             _logger.LogError(ex, "Error getting agent status");
             return StatusCode(500, "Internal server error");
         }
-    }
-
-    /// <summary>
+    }    /// <summary>
     /// Create a new agent session
     /// </summary>
     [HttpPost("session")]
@@ -78,35 +78,41 @@ public class AgentController : ControllerBase
             if (!_authService.IsAuthorized(allowedEmails))
             {
                 return Forbid("Service not authorized to create sessions");
-            }
-
-            var sessionId = Guid.NewGuid().ToString();
-            var session = new
+            }            var createRequest = new CreateAgentSessionRequest
             {
-                SessionId = sessionId,
                 RepositoryUrl = request.RepositoryUrl,
-                CreatedAt = DateTime.UtcNow,
-                CreatedBy = User.FindFirst("email")?.Value,
-                Status = "Created"
+                Branch = request.Branch,
+                Configuration = request.Configuration,
+                CreatedBy = User.FindFirst("email")?.Value
             };
 
-            // Save to Firestore
-            var collection = _firestoreDb.Collection(_configuration["Firestore:CollectionNames:Sessions"] ?? "sessions");
-            await collection.Document(sessionId).SetAsync(session);
+            var agentSession = await _agentSessionStore.CreateAsync(createRequest);
+
+            var response = new
+            {
+                SessionId = agentSession.Id,
+                RepositoryUrl = agentSession.RepositoryUrl,
+                CreatedAt = agentSession.CreatedAt,
+                CreatedBy = agentSession.CreatedBy,
+                Status = agentSession.Status
+            };
 
             _logger.LogInformation("Created session {SessionId} for repository {Repository}", 
-                sessionId, request.RepositoryUrl);
+                agentSession.Id, request.RepositoryUrl);
 
-            return Ok(session);
+            return Ok(response);
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning(ex, "Validation error creating session");
+            return BadRequest(new { error = ex.Message });
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating session for repository {Repository}", request.RepositoryUrl);
             return StatusCode(500, "Internal server error");
         }
-    }
-
-    /// <summary>
+    }    /// <summary>
     /// Get agent session information
     /// </summary>
     [HttpGet("session/{sessionId}")]
@@ -121,18 +127,29 @@ public class AgentController : ControllerBase
                 return Forbid("Service not authorized to access sessions");
             }
 
-            var collection = _firestoreDb.Collection(_configuration["Firestore:CollectionNames:Sessions"] ?? "sessions");
-            var doc = await collection.Document(sessionId).GetSnapshotAsync();
+            var agentSession = await _agentSessionStore.GetByIdAsync(sessionId);
 
-            if (!doc.Exists)
+            if (agentSession == null)
             {
                 return NotFound($"Session {sessionId} not found");
             }
 
-            var session = doc.ToDictionary();
+            var response = new
+            {
+                SessionId = agentSession.Id,
+                RepositoryUrl = agentSession.RepositoryUrl,
+                Branch = agentSession.Branch,
+                CreatedAt = agentSession.CreatedAt,
+                CreatedBy = agentSession.CreatedBy,
+                Status = agentSession.Status,
+                Configuration = agentSession.Configuration,
+                UpdatedAt = agentSession.UpdatedAt,
+                ErrorMessage = agentSession.ErrorMessage
+            };
+
             _logger.LogInformation("Retrieved session {SessionId}", sessionId);
 
-            return Ok(session);
+            return Ok(response);
         }
         catch (Exception ex)
         {
