@@ -20,7 +20,7 @@
 		{
 			"type": "dotnet",
 			"task": "watch OrchestratorService",
-			"file": "D:\\src\\github\\nam20485\\AgentAsAService\\OrchestratorService\\OrchestratorService.csproj",
+			"file": "${workspaceFolder}/OrchestratorService/OrchestratorService.csproj",
 			"problemMatcher": [],
 			"label": "dotnet: watch OrchestratorService"
 		},
