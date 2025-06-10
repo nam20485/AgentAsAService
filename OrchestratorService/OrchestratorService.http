@@ -4,4 +4,3 @@ GET {{OrchestratorService_HostAddress}}/weatherforecast/
 Accept: application/json
 
 ###
- 
