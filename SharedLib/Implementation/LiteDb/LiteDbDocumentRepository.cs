@@ -50,7 +50,7 @@ public class LiteDbDocumentRepository<T> : IDocumentRepository<T> where T : clas
         var collection = db.GetCollection<T>(_collectionName);
         
         var result = collection.FindById(new BsonValue(id));
-        return Task.FromResult(result);
+        return Task.FromResult<T?>(result);
     }
 
     public Task<IEnumerable<T>> QueryAsync(Expression<Func<T, bool>> predicate)

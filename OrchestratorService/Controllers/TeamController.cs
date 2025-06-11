@@ -71,7 +71,7 @@ public class TeamController : ControllerBase
             {
                 Id = m.Id,
                 Name = m.Name,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = m.CreatedAt
             }).ToList();
 
             return Ok(responses);
