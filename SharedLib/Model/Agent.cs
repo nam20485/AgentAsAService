@@ -2,7 +2,7 @@ using System;
 
 namespace SharedLib.Model;
 
-public class Agent
+public abstract class Agent
 {
     public string Id { get; set; } = Guid.NewGuid().ToString();
     public string Name { get; set; }
