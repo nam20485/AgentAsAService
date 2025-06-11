@@ -12,11 +12,9 @@ internal class Program
 {
     private static void Main(string[] args)
     {
-        var builder = WebApplication.CreateBuilder(args);
-
-        // Configure Kestrel to use the PORT environment variable if available
-        var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
-        builder.WebHost.UseUrls($"http://*:{port}");        // Add services to the container.
+        var builder = WebApplication.CreateBuilder(args);        // Configure Kestrel to use the PORT environment variable if available
+        var port = Environment.GetEnvironmentVariable("PORT") ?? "7001";
+        builder.WebHost.UseUrls($"http://*:{port}");// Add services to the container.
         builder.Services.AddControllers();
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen(c =>

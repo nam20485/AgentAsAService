@@ -19,17 +19,31 @@ builder.Services.AddOidcAuthentication(options =>
     options.ProviderOptions.DefaultScopes.Add("email");
 });
 
-// Configure HTTP client with authentication
-builder.Services.AddHttpClient("OrchestratorAPI", client =>
+// Configure HTTP client based on environment
+var isDevelopment = builder.HostEnvironment.IsDevelopment();
+
+if (isDevelopment)
 {
-    client.BaseAddress = new Uri(builder.Configuration["OrchestratorService:BaseUrl"] ?? builder.HostEnvironment.BaseAddress);
-}).AddHttpMessageHandler<BaseAddressAuthorizationMessageHandler>();
+    // Development: HTTP client without authentication for easier testing
+    builder.Services.AddHttpClient("OrchestratorAPI", client =>
+    {
+        client.BaseAddress = new Uri(builder.Configuration["OrchestratorService:BaseUrl"] ?? builder.HostEnvironment.BaseAddress);
+    });
+}
+else
+{
+    // Production: HTTP client with authentication
+    builder.Services.AddHttpClient("OrchestratorAPI", client =>
+    {
+        client.BaseAddress = new Uri(builder.Configuration["OrchestratorService:BaseUrl"] ?? builder.HostEnvironment.BaseAddress);
+    }).AddHttpMessageHandler<BaseAddressAuthorizationMessageHandler>();
+    
+    // Register authorization message handler for production
+    builder.Services.AddScoped<BaseAddressAuthorizationMessageHandler>();
+}
 
 // Configure default HTTP client
 builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("OrchestratorAPI"));
-
-// Register authorization message handler
-builder.Services.AddScoped<BaseAddressAuthorizationMessageHandler>();
 
 // Register Radzen components
 builder.Services.AddRadzenComponents();

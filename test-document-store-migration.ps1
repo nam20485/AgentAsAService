@@ -33,8 +33,8 @@ Write-Host "  - Environment-based provider selection"
 
 Write-Host "`n=== Provider Configuration ===" -ForegroundColor Yellow
 Write-Host "Development Environment:"
-Write-Host "  - OrchestratorService: LiteDB (data/orchestrator.db)"
-Write-Host "  - AgentService: LiteDB (data/agentservice.db)"
+Write-Host "  - OrchestratorService: LiteDB (local-storage/orchestrator.db)"
+Write-Host "  - AgentService: LiteDB (local-storage/agentservice.db)"
 
 Write-Host "`nProduction Environment:"
 Write-Host "  - OrchestratorService: Firestore (agent-as-a-service-459620)"

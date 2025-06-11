@@ -11,9 +11,9 @@ internal class Program
 {
     private static void Main(string[] args)
     {
-        var builder = WebApplication.CreateBuilder(args);
-
-        // Configure Kestrel to use the PORT environment variable if available
+        var builder = WebApplication.CreateBuilder(args);        // Configure Kestrel to use the PORT environment variable if available
+        // In production (Cloud Run): uses $PORT from container environment
+        // In development: uses default port 8080 if PORT not set
         var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
         builder.WebHost.UseUrls($"http://*:{port}");
 
@@ -87,20 +87,30 @@ internal class Program
                     ValidateLifetime = true,
                     ClockSkew = TimeSpan.Zero
                 };
-            });
-
-        // Add Authorization
+            });        // Add Authorization with environment-specific policies
         builder.Services.AddAuthorization(options =>
         {
-            if (builder.Environment.IsDevelopment())
+            if (builder.Environment.IsDevelopment() || builder.Environment.EnvironmentName == "Testing")
             {
-                // In development, allow all requests to bypass authentication for easier testing
+                // Development & Testing: bypass authentication for easier testing
                 options.AddPolicy("RequireAuthenticatedUser", policy =>
-                    policy.RequireAssertion(_ => true)); // Always allow in development
+                    policy.RequireAssertion(_ => true)); // Always allow
+            }
+            else if (builder.Environment.IsStaging())
+            {
+                // Staging: require authentication but may be more permissive
+                options.AddPolicy("RequireAuthenticatedUser", policy =>
+                    policy.RequireAuthenticatedUser());
+            }
+            else if (builder.Environment.IsProduction())
+            {
+                // Production: strict authentication policy
+                options.AddPolicy("RequireAuthenticatedUser", policy =>
+                    policy.RequireAuthenticatedUser());
             }
             else
             {
-                // Production authentication policy
+                // Default: require authentication
                 options.AddPolicy("RequireAuthenticatedUser", policy =>
                     policy.RequireAuthenticatedUser());
             }

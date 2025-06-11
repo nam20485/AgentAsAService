@@ -33,7 +33,7 @@ The implementation provides database independence through two abstraction layers
 {
   "DocumentStore": {
     "Provider": "LiteDb",
-    "ConnectionString": "data/orchestrator.db"
+    "ConnectionString": "local-storage/orchestrator.db"
   }
 }
 ```
@@ -53,7 +53,7 @@ The implementation provides database independence through two abstraction layers
 {
   "DocumentStore": {
     "Provider": "JsonFile",
-    "DataDirectory": "data"
+    "DataDirectory": "local-storage"
   }
 }
 ```
