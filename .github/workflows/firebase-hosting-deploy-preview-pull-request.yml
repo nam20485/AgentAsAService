@@ -5,7 +5,7 @@ name: Deploy to Firebase Hosting on PR
 on: pull_request
 
 env:
-  DOTNET_SDK_VERSION: 9.0.300  
+  DOTNET_SDK_VERSION: 9.0.102
   FIREBASE_CLI_VERSION: 14.4.0
   NODE_VERSION: 24.2.0
 

@@ -15,7 +15,7 @@ on:
     - cron: '0 3 * * 2' # Weekly on Tuesdays at 3 AM UTC
 
 env:
-  DOTNET_SDK_VERSION: 9.0.300
+  DOTNET_SDK_VERSION: 9.0.102
   NODE_VERSION: lts
 
 permissions:
