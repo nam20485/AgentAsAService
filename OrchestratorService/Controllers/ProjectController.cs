@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Mvc;
 using SharedLib.Model;
 using SharedLib.DTOs;
 using SharedLib.Abstractions.Stores;
-using OrchestratorService.Services;
 
 namespace OrchestratorService.Controllers
 {
@@ -13,13 +12,13 @@ namespace OrchestratorService.Controllers
     public class ProjectController : ControllerBase
     {
         private readonly IProjectStore _projectStore;
-        private readonly IFirestoreService _firestoreService; // Keep for orchestrator operations during transition
+        private readonly IOrchestratorStore _orchestratorStore;
         private readonly ILogger<ProjectController> _logger;
 
-        public ProjectController(IProjectStore projectStore, IFirestoreService firestoreService, ILogger<ProjectController> logger)
+        public ProjectController(IProjectStore projectStore, IOrchestratorStore orchestratorStore, ILogger<ProjectController> logger)
         {
             _projectStore = projectStore;
-            _firestoreService = firestoreService;
+            _orchestratorStore = orchestratorStore;
             _logger = logger;
         }
 
@@ -39,14 +38,12 @@ namespace OrchestratorService.Controllers
                         Name = request.RepositoryName,
                         Address = request.RepositoryAddress
                     }
-                };
-
-                // Create orchestrator first (using legacy service for now)
+                };                // Create orchestrator using the new store
                 var orchestratorRequest = new CreateOrchestratorRequest
                 {
                     Name = request.OrchestratorName
                 };
-                var orchestrator = await _firestoreService.CreateOrchestratorAsync(orchestratorRequest);
+                var orchestrator = await _orchestratorStore.CreateAsync(orchestratorRequest);
                 
                 // Set the orchestrator ID
                 project.OrchestratorId = orchestrator.Id;

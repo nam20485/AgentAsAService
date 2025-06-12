@@ -58,13 +58,8 @@ internal class Program
         builder.Services.AddHttpClient();
 
         // Register HTTP client services
-        builder.Services.AddHttpClient<IAgentHttpClientService, AgentHttpClientService>();
-
-        // Add document store services (replaces direct Firestore registration)
+        builder.Services.AddHttpClient<IAgentHttpClientService, AgentHttpClientService>();        // Add document store services (replaces direct Firestore registration)
         builder.Services.AddDocumentStore(builder.Configuration);
-
-        // Register legacy Firestore service (for gradual migration)
-        builder.Services.AddScoped<IFirestoreService, FirestoreService>();
 
         // Add Google Cloud Firestore (still needed for direct usage in some controllers)
         builder.Services.AddSingleton(provider =>

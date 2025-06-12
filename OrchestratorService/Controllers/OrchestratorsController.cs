@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using SharedLib.DTOs;
 using SharedLib.Model;
 using SharedLib.Abstractions.Stores;
-using OrchestratorService.Services;
 
 namespace OrchestratorService.Controllers;
 
@@ -12,13 +11,11 @@ namespace OrchestratorService.Controllers;
 public class OrchestratorsController : ControllerBase
 {
     private readonly IOrchestratorStore _orchestratorStore;
-    private readonly IFirestoreService _firestoreService; // Keep for transition period
     private readonly ILogger<OrchestratorsController> _logger;
 
-    public OrchestratorsController(IOrchestratorStore orchestratorStore, IFirestoreService firestoreService, ILogger<OrchestratorsController> logger)
+    public OrchestratorsController(IOrchestratorStore orchestratorStore, ILogger<OrchestratorsController> logger)
     {
         _orchestratorStore = orchestratorStore;
-        _firestoreService = firestoreService;
         _logger = logger;
     }
 
