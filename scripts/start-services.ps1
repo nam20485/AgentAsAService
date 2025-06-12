@@ -22,6 +22,9 @@
 .PARAMETER NoToken
     Skip generating authentication token for Swagger
 
+.PARAMETER Windows
+    Start services in separate PowerShell windows instead of background processes
+
 .EXAMPLE
     .\start-services.ps1
     Starts both services and opens browsers
@@ -29,6 +32,10 @@
 .EXAMPLE
     .\start-services.ps1 -NoBrowser
     Starts both services without opening browsers
+
+.EXAMPLE
+    .\start-services.ps1 -Windows
+    Starts services in separate PowerShell windows for easy management
 
 .EXAMPLE
     .\start-services.ps1 -Port 8081 -WebPort 5265
@@ -45,7 +52,8 @@ param(
     [int]$Port = 8080,
     [int]$WebPort = 5264,
     [string]$ProjectId = "agent-as-a-service-459620",
-    [switch]$NoToken
+    [switch]$NoToken,
+    [switch]$Windows
 )
 
 # Colors for output
@@ -107,6 +115,7 @@ function Start-BackgroundService {
     $processInfo.UseShellExecute = $false
     $processInfo.CreateNoWindow = $false
     
+    
     $process = [System.Diagnostics.Process]::Start($processInfo)
     
     if ($process) {
@@ -165,9 +174,25 @@ try {
       if (-not (Get-Command dotnet -ErrorAction SilentlyContinue)) {
         Write-ColorOutput "❌ .NET SDK not found. Please install .NET 9.0 SDK." $Red
         exit 1
-    }
-    $dotnetVersion = dotnet --version
+    }    $dotnetVersion = dotnet --version
     Write-ColorOutput "✅ .NET SDK version: $dotnetVersion" $Green
+    
+    # If Windows parameter is specified, delegate to the windowed script
+    if ($Windows) {
+        Write-ColorOutput "🪟 Delegating to windowed startup script..." $Blue
+        $windowsScript = Join-Path $PSScriptRoot "start-services-windows.ps1"
+        if (Test-Path $windowsScript) {
+            if ($NoBrowser) {
+                & $windowsScript -NoBrowser
+            } else {
+                & $windowsScript
+            }
+            exit 0
+        } else {
+            Write-ColorOutput "❌ Windowed script not found: $windowsScript" $Red
+            Write-ColorOutput "💡 You can still use the regular startup mode." $Yellow
+        }
+    }
     
     # Set Google Cloud Project ID environment variable
     Write-ColorOutput "🔧 Setting up environment..." $Yellow
