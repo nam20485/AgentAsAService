@@ -10,10 +10,14 @@ using SharedLib.Extensions;
 
 internal class Program
 {
+    private const string DEFAULT_LISTEN_PORT = "7001";
+
     private static void Main(string[] args)
     {
-        var builder = WebApplication.CreateBuilder(args);        // Configure Kestrel to use the PORT environment variable if available
-        var port = Environment.GetEnvironmentVariable("PORT") ?? "7001";
+        var builder = WebApplication.CreateBuilder(args);
+        
+        // Configure Kestrel to use the PORT environment variable if available
+        var port = Environment.GetEnvironmentVariable("PORT") ?? DEFAULT_LISTEN_PORT;
         builder.WebHost.UseUrls($"http://*:{port}");// Add services to the container.
         builder.Services.AddControllers();
         builder.Services.AddEndpointsApiExplorer();
@@ -165,7 +169,9 @@ internal class Program
         }
 
         app.UseAuthentication();
-        app.UseAuthorization();        // Add health check endpoints
+        app.UseAuthorization();
+
+        // Add health check endpoints
         app.MapHealthChecks("/health", new HealthCheckOptions
         {
             ResponseWriter = async (context, report) =>
