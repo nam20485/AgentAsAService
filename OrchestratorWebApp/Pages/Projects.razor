@@ -1,7 +1,11 @@
 @page "/projects"
 @using System.Net.Http
 @using System.Text.Json
+@using SharedLib.Model
+@using SharedLib.DTOs
 @inject HttpClient Http
+@inject NavigationManager Navigation
+@inject NavigationManager Navigation
 
 <PageTitle>Projects - Agent as a Service</PageTitle>
 
@@ -66,10 +70,10 @@
                                                 }
                                             </td>
                                             <td>@project.OrchestratorId</td>
-                                            <td>@project.CreatedAt.ToString("MMM dd, yyyy")</td>
-                                            <td>
-                                                <button class="btn btn-sm btn-outline-primary">Edit</button>
-                                                <button class="btn btn-sm btn-outline-danger">Delete</button>
+                                            <td>@project.CreatedAt.ToString("MMM dd, yyyy")</td>                                            <td>
+                                                <a href="/projects/@project.Id" class="btn btn-sm btn-outline-info">View</a>
+                                                <button class="btn btn-sm btn-outline-primary" @onclick="() => EditProject(project.Id)">Edit</button>
+                                                <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteProject(project.Id)">Delete</button>
                                             </td>
                                         </tr>
                                     }
@@ -134,7 +138,7 @@
 </div>
 
 @code {
-    private List<Project>? projects;
+    private List<SharedLib.Model.Project>? projects;
     private CreateProjectRequest newProject = new();
     private bool isCreating = false;
     private string createMessage = "";
@@ -150,14 +154,14 @@
         try
         {
             var response = await Http.GetStringAsync("/api/projects");
-            projects = JsonSerializer.Deserialize<List<Project>>(response, new JsonSerializerOptions
+            projects = JsonSerializer.Deserialize<List<SharedLib.Model.Project>>(response, new JsonSerializerOptions
             {
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-            }) ?? new List<Project>();
+            }) ?? new List<SharedLib.Model.Project>();
         }
         catch (Exception ex)
         {
-            projects = new List<Project>();
+            projects = new List<SharedLib.Model.Project>();
             createMessage = $"Failed to load projects: {ex.Message}";
             createSuccess = false;
         }
@@ -207,33 +211,38 @@
         }
         finally
         {
-            isCreating = false;
-            StateHasChanged();
+            isCreating = false;            StateHasChanged();
         }
     }
 
-    // Data models (should match SharedLib models)
-    public class Project
+    private void EditProject(string projectId)
     {
-        public string Id { get; set; } = "";
-        public string Name { get; set; } = "";
-        public string OrchestratorId { get; set; } = "";
-        public Repository? Repository { get; set; }
-        public DateTime CreatedAt { get; set; }
+        // Navigate to project edit page (could be implemented as a modal or separate page)
+        // For now, just navigate to the project details page
+        Navigation.NavigateTo($"/projects/{projectId}");
     }
 
-    public class Repository
+    private async Task DeleteProject(string projectId)
     {
-        public string Id { get; set; } = "";
-        public string Name { get; set; } = "";
-        public string Address { get; set; } = "";
-    }
-
-    public class CreateProjectRequest
-    {
-        public string ProjectName { get; set; } = "";
-        public string OrchestratorName { get; set; } = "";
-        public string RepositoryName { get; set; } = "";
-        public string RepositoryAddress { get; set; } = "";
-    }
+        try
+        {
+            var response = await Http.DeleteAsync($"/api/projects/{projectId}");
+            if (response.IsSuccessStatusCode)
+            {
+                createMessage = "Project deleted successfully!";
+                createSuccess = true;
+                await LoadProjects(); // Refresh the list
+            }
+            else
+            {
+                var responseContent = await response.Content.ReadAsStringAsync();
+                createMessage = $"Failed to delete project: {responseContent}";
+                createSuccess = false;
+            }
+        }
+        catch (Exception ex)
+        {
+            createMessage = $"Error deleting project: {ex.Message}";
+            createSuccess = false;
+        }    }
 }
