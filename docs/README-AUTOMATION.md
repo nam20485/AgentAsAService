@@ -1,11 +1,8 @@
-# AgentAsAService - Automated Launch Guide
+# AgentAsAService - Quick Start
 
 This document explains how to use the automated startup options for the AgentAsAService project.
 
-## 🚀 **Quick Start Options**
-
-### Option 1: PowerShell Script (Recommended)
-**Easiest way to start everything:**
+### PowerShell Script (Recommended)
 
 ```powershell
 .\start-services.ps1
@@ -43,114 +40,58 @@ This document explains how to use the automated startup options for the AgentAsA
 3. **Tasks: Run Task** → **"Stop All Services"**
    - Stops all running services cleanly
 
-### Option 3: VS Code Launch Configuration
-**Use the Debug panel (F5):**
+### VS Code Debug (F5)
 
-1. **🚀 Launch AgentAsAService (Full Stack)**
-   - Comprehensive startup with browser launch
-   - Best for development work
+- **🚀 Launch AgentAsAService (Full Stack)** - Full development setup
+- **🔧 Debug OrchestratorService Only** - API backend only
+- **🌐 Debug OrchestratorWebApp Only** - Frontend only
 
-2. **🚀 Debug Full Stack (Manual)**
-   - Starts both services in debug mode
-   - Allows breakpoint debugging
+## Service URLs
 
-3. **🔧 Debug OrchestratorService Only**
-   - Just the API service for backend development
+| Service | URL | Purpose |
+|---------|-----|---------|
+| Web App | <http://localhost:5264> | Main interface |
+| API | <http://localhost:8080> | REST endpoints |
+| Swagger | <http://localhost:8080/swagger> | API docs |
+| Health | <http://localhost:8080/health> | Status check |
 
-4. **🌐 Debug OrchestratorWebApp Only**
-   - Just the web app for frontend development
+## Manual Start
 
-## 📋 **Manual Start (Traditional)**
-
-If you prefer manual control:
-
-**Terminal 1:**
 ```powershell
-cd OrchestratorService
-dotnet run
+# Terminal 1
+cd OrchestratorService && dotnet run
+
+# Terminal 2  
+cd OrchestratorWebApp && dotnet run
 ```
 
-**Terminal 2:**
+## Troubleshooting
+
+### Port Conflicts
+
 ```powershell
-cd OrchestratorWebApp
-dotnet run
+netstat -ano | findstr ":8080 \|:5264"
+taskkill /F /PID <PID>
 ```
 
-**Open browsers manually:**
-- Web App: http://localhost:5264
-- API Swagger: http://localhost:8080/swagger
+### Startup Issues
 
-## 🛠️ **Service URLs**
+- Check .NET version: `dotnet --version`
+- Build first: `dotnet build AgentAsAService.sln`
+- Verify local-storage directory exists
 
-| Service | URL | Description |
-|---------|-----|-------------|
-| **Web App** | http://localhost:5264 | Main application interface |
-| **API** | http://localhost:8080 | REST API endpoints |
-| **Swagger** | http://localhost:8080/swagger | API documentation |
-| **Health Check** | http://localhost:8080/health | Service health status |
+## Development Workflow
 
-## 🔧 **Troubleshooting**
-
-### Port Already in Use
-The startup script automatically handles this, but if needed:
 ```powershell
-# Check what's using the ports
-netstat -ano | findstr ":8080 \|:5264 "
-
-# Kill specific process (replace PID)
-taskkill /F /PID <PID_NUMBER>
+.\start-services.ps1    # Start everything
+# Code, test, iterate
+# Ctrl+C to stop
 ```
 
-### Services Won't Start
-1. Ensure .NET 9.0 SDK is installed: `dotnet --version`
-2. Build the solution first: `dotnet build AgentAsAService.sln`
-3. Check the local-storage directory exists: `OrchestratorService\local-storage\`
+**Features:**
 
-### Browser Doesn't Open
-- Run with `-NoBrowser` flag and open manually
-- Check Windows firewall/antivirus settings
-- Verify URLs are accessible: http://localhost:5264
-
-## 📁 **Project Structure**
-
-```
-AgentAsAService/
-├── start-services.ps1              # 🆕 Automated startup script
-├── .vscode/
-│   ├── tasks.json                  # 🆕 Enhanced with automation tasks
-│   └── launch.json                 # 🆕 Debug configurations
-├── OrchestratorService/            # Backend API
-│   └── local-storage/              # 🆕 Auto-created database directory
-├── OrchestratorWebApp/             # Frontend web app
-└── README-AUTOMATION.md            # This file
-```
-
-## 🎯 **Development Workflow**
-
-### For Full-Stack Development:
-```powershell
-.\start-services.ps1
-# Both services start, browsers open automatically
-# Code, test, iterate...
-# Press Ctrl+C when done
-```
-
-### For API-Only Development:
-Use VS Code: **🔧 Debug OrchestratorService Only**
-
-### For Frontend-Only Development:
-1. Ensure API is running (port 8080)
-2. Use VS Code: **🌐 Debug OrchestratorWebApp Only**
-
-## ✨ **Features**
-
-- 🚀 **One-command startup** with full automation
-- 🔍 **Health checks** ensure services are ready
-- 🌐 **Auto-browser launch** to the right URLs
-- 🛑 **Clean shutdown** with Ctrl+C handling
-- 📊 **Service monitoring** with status updates
-- 🔧 **VS Code integration** with tasks and launch configs
-- 🎨 **Color-coded output** for easy reading
-- ⚡ **Fast restart** capabilities
-
-**Ready to develop! 🎉**
+- One-command startup
+- Health checks
+- Auto-browser launch
+- Clean shutdown
+- VS Code integration
