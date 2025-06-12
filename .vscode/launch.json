@@ -199,6 +199,78 @@
                 "enabled": true,
                 "args": "https://localhost:7235/swagger"
             }
+        },
+        {
+            "name": "🚀 Launch AgentAsAService (Full Stack)",
+            "type": "coreclr", 
+            "request": "launch",
+            "preLaunchTask": "Run Startup Script",
+            "program": "${workspaceFolder}/OrchestratorService/bin/Debug/net9.0/OrchestratorService.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/OrchestratorService",
+            "console": "integratedTerminal",
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development"
+            },
+            "launchBrowser": {
+                "enabled": true,
+                "args": "http://localhost:5264"
+            },
+            "presentation": {
+                "hidden": false,
+                "group": "AgentAsAService",
+                "order": 1
+            }
+        },
+        {
+            "name": "🔧 Debug OrchestratorService Only",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "Create local-storage directory",
+            "program": "${workspaceFolder}/OrchestratorService/bin/Debug/net9.0/OrchestratorService.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/OrchestratorService", 
+            "console": "integratedTerminal",
+            "stopAtEntry": false,
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development"
+            },
+            "launchBrowser": {
+                "enabled": true,
+                "args": "http://localhost:8080/swagger"
+            },
+            "presentation": {
+                "hidden": false,
+                "group": "Debug Individual",
+                "order": 1
+            }
+        },
+        {
+            "name": "🌐 Debug OrchestratorWebApp Only", 
+            "type": "blazorwasm",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/OrchestratorWebApp",
+            "url": "http://localhost:5264",
+            "presentation": {
+                "hidden": false,
+                "group": "Debug Individual", 
+                "order": 2
+            }
+        }
+    ],
+    "compounds": [
+        {
+            "name": "🚀 Debug Full Stack (Manual)",
+            "configurations": [
+                "🔧 Debug OrchestratorService Only",
+                "🌐 Debug OrchestratorWebApp Only"
+            ],
+            "stopAll": true,
+            "presentation": {
+                "hidden": false,
+                "group": "Debug Compound",
+                "order": 1
+            }
         }
     ]
 }
