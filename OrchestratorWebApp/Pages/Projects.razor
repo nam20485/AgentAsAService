@@ -1,0 +1,239 @@
+@page "/projects"
+@using System.Net.Http
+@using System.Text.Json
+@inject HttpClient Http
+
+<PageTitle>Projects - Agent as a Service</PageTitle>
+
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1>📁 Project Management</h1>
+            <p class="text-muted">Create and manage projects with orchestrators and agent teams.</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">📋 Existing Projects</h5>
+                </div>
+                <div class="card-body">
+                    @if (projects == null)
+                    {
+                        <div class="text-center">
+                            <div class="spinner-border" role="status">
+                                <span class="sr-only">Loading...</span>
+                            </div>
+                            <p class="mt-2">Loading projects...</p>
+                        </div>
+                    }
+                    else if (projects.Count == 0)
+                    {
+                        <div class="text-center text-muted">
+                            <i class="fas fa-folder-open fa-3x mb-3"></i>
+                            <p>No projects found. Create your first project to get started!</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Repository</th>
+                                        <th>Orchestrator</th>
+                                        <th>Created</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var project in projects)
+                                    {
+                                        <tr>
+                                            <td><strong>@project.Name</strong></td>
+                                            <td>
+                                                @if (project.Repository != null)
+                                                {
+                                                    <span>@project.Repository.Name</span><br>
+                                                    <small class="text-muted">@project.Repository.Address</small>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">No repository</span>
+                                                }
+                                            </td>
+                                            <td>@project.OrchestratorId</td>
+                                            <td>@project.CreatedAt.ToString("MMM dd, yyyy")</td>
+                                            <td>
+                                                <button class="btn btn-sm btn-outline-primary">Edit</button>
+                                                <button class="btn btn-sm btn-outline-danger">Delete</button>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">➕ Create New Project</h5>
+                </div>
+                <div class="card-body">
+                    <form @onsubmit="CreateProject" @onsubmit:preventDefault="true">
+                        <div class="mb-3">
+                            <label for="projectName" class="form-label">Project Name</label>
+                            <input type="text" class="form-control" id="projectName" @bind="newProject.ProjectName" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="orchestratorName" class="form-label">Orchestrator Name</label>
+                            <input type="text" class="form-control" id="orchestratorName" @bind="newProject.OrchestratorName" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="repositoryName" class="form-label">Repository Name</label>
+                            <input type="text" class="form-control" id="repositoryName" @bind="newProject.RepositoryName">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="repositoryAddress" class="form-label">Repository Address</label>
+                            <input type="url" class="form-control" id="repositoryAddress" @bind="newProject.RepositoryAddress" placeholder="https://github.com/user/repo">
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary w-100" disabled="@isCreating">
+                            @if (isCreating)
+                            {
+                                <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                                <span>Creating...</span>
+                            }
+                            else
+                            {
+                                <span>Create Project</span>
+                            }
+                        </button>
+                    </form>
+                    
+                    @if (!string.IsNullOrEmpty(createMessage))
+                    {
+                        <div class="alert @(createSuccess ? "alert-success" : "alert-danger") mt-3" role="alert">
+                            @createMessage
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<Project>? projects;
+    private CreateProjectRequest newProject = new();
+    private bool isCreating = false;
+    private string createMessage = "";
+    private bool createSuccess = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadProjects();
+    }
+
+    private async Task LoadProjects()
+    {
+        try
+        {
+            var response = await Http.GetStringAsync("/api/projects");
+            projects = JsonSerializer.Deserialize<List<Project>>(response, new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            }) ?? new List<Project>();
+        }
+        catch (Exception ex)
+        {
+            projects = new List<Project>();
+            createMessage = $"Failed to load projects: {ex.Message}";
+            createSuccess = false;
+        }
+    }
+
+    private async Task CreateProject()
+    {
+        if (string.IsNullOrWhiteSpace(newProject.ProjectName) || string.IsNullOrWhiteSpace(newProject.OrchestratorName))
+        {
+            createMessage = "Project name and orchestrator name are required.";
+            createSuccess = false;
+            return;
+        }
+
+        isCreating = true;
+        createMessage = "";
+        StateHasChanged();
+
+        try
+        {
+            var json = JsonSerializer.Serialize(newProject, new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            });
+            var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+            
+            var response = await Http.PostAsync("/api/projects", content);
+            var responseContent = await response.Content.ReadAsStringAsync();
+            
+            if (response.IsSuccessStatusCode)
+            {
+                createMessage = "Project created successfully!";
+                createSuccess = true;
+                newProject = new CreateProjectRequest(); // Reset form
+                await LoadProjects(); // Refresh the list
+            }
+            else
+            {
+                createMessage = $"Failed to create project: {responseContent}";
+                createSuccess = false;
+            }
+        }
+        catch (Exception ex)
+        {
+            createMessage = $"Error creating project: {ex.Message}";
+            createSuccess = false;
+        }
+        finally
+        {
+            isCreating = false;
+            StateHasChanged();
+        }
+    }
+
+    // Data models (should match SharedLib models)
+    public class Project
+    {
+        public string Id { get; set; } = "";
+        public string Name { get; set; } = "";
+        public string OrchestratorId { get; set; } = "";
+        public Repository? Repository { get; set; }
+        public DateTime CreatedAt { get; set; }
+    }
+
+    public class Repository
+    {
+        public string Id { get; set; } = "";
+        public string Name { get; set; } = "";
+        public string Address { get; set; } = "";
+    }
+
+    public class CreateProjectRequest
+    {
+        public string ProjectName { get; set; } = "";
+        public string OrchestratorName { get; set; } = "";
+        public string RepositoryName { get; set; } = "";
+        public string RepositoryAddress { get; set; } = "";
+    }
+}
