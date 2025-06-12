@@ -162,3 +162,4 @@ OrchestratorService/publish/System.CodeDom.dll
 OrchestratorService/publish/System.Management.dll
 OrchestratorService/publish/web.config
 OrchestratorService/publish/runtimes/win/lib/net7.0/System.Management.dll
+OrchestratorService/local-storage/orchestrator.db
