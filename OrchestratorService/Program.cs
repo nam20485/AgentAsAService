@@ -90,11 +90,17 @@ internal class Program
                 // Development & Testing: bypass authentication for easier testing
                 options.AddPolicy("RequireAuthenticatedUser", policy =>
                     policy.RequireAssertion(_ => true)); // Always allow
+                
+                options.AddPolicy("RequireServiceAuthentication", policy =>
+                    policy.RequireAssertion(_ => true)); // Always allow in development
             }
             else if (builder.Environment.IsStaging())
             {
                 // Staging: require authentication but may be more permissive
                 options.AddPolicy("RequireAuthenticatedUser", policy =>
+                    policy.RequireAuthenticatedUser());
+                
+                options.AddPolicy("RequireServiceAuthentication", policy =>
                     policy.RequireAuthenticatedUser());
             }
             else if (builder.Environment.IsProduction())
@@ -102,11 +108,17 @@ internal class Program
                 // Production: strict authentication policy
                 options.AddPolicy("RequireAuthenticatedUser", policy =>
                     policy.RequireAuthenticatedUser());
+                
+                options.AddPolicy("RequireServiceAuthentication", policy =>
+                    policy.RequireAuthenticatedUser());
             }
             else
             {
                 // Default: require authentication
                 options.AddPolicy("RequireAuthenticatedUser", policy =>
+                    policy.RequireAuthenticatedUser());
+                
+                options.AddPolicy("RequireServiceAuthentication", policy =>
                     policy.RequireAuthenticatedUser());
             }
         });

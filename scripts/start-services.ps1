@@ -162,12 +162,11 @@ try {
     
     # Check prerequisites
     Write-ColorOutput "🔧 Checking prerequisites..." $Yellow
-    
-    if (-not (Get-Command dotnet -ErrorAction SilentlyContinue)) {
+      if (-not (Get-Command dotnet -ErrorAction SilentlyContinue)) {
         Write-ColorOutput "❌ .NET SDK not found. Please install .NET 9.0 SDK." $Red
         exit 1
     }
-      $dotnetVersion = dotnet --version
+    $dotnetVersion = dotnet --version
     Write-ColorOutput "✅ .NET SDK version: $dotnetVersion" $Green
     
     # Set Google Cloud Project ID environment variable
@@ -252,9 +251,9 @@ try {
             Write-ColorOutput "⚠️  Could not open browsers automatically. Please open manually:" $Yellow
             Write-ColorOutput "   • Web App: http://localhost:$WebPort" $Yellow
             Write-ColorOutput "   • Swagger: http://localhost:$Port/swagger" $Yellow
-        }
-    }
-      Write-ColorOutput "" $Reset
+        }    }
+    
+    Write-ColorOutput "" $Reset
     Write-ColorOutput "💡 Tips:" $Blue
     Write-ColorOutput "  • Use 'stop-services.ps1' to stop all services" $Blue
     Write-ColorOutput "  • Press Ctrl+C in service terminals to stop individual services" $Blue
@@ -268,7 +267,8 @@ try {
             $tokenScriptPath = Join-Path $PSScriptRoot "get-auth-token.ps1"
             if (Test-Path $tokenScriptPath) {
                 # Try gcloud method first, fallback to firebase if needed
-                & $tokenScriptPath -Method "gcloud" -ProjectId $ProjectId
+                Write-ColorOutput "📋 Using project ID: $ProjectId" $Blue
+                & pwsh -File $tokenScriptPath -Method "gcloud" -ProjectId $ProjectId
                 Write-ColorOutput "✅ Authentication token generated and copied to clipboard!" $Green
                 Write-ColorOutput "💡 You can now paste the token in Swagger UI for authenticated requests" $Blue
             } else {
