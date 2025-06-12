@@ -1,0 +1,52 @@
+# Task-based Workflow: Document and Work By Task Issues
+
+This file describes your task-based workflow where you plan your task(s) out prior to performing the work, create a GH issue, and use then it to document progress and completion of the task.
+
+## Task Workflow Overview
+
+For all non-trivial sized tasks you will complete the following process as you work through the task:
+
+### Task Workflow Steps
+
+1. After determining plan for implementation, create new GH issue and outline steps there. For each step of the task create a short few sentences that describe the step and a checkbox.
+1. Include a short paragraph in the body as a description. Outline what you intend to change, how you intend to change it, the outcome, and why.
+1. Print copy of issue in your display and ask user if they would like to view the issue in the browser.
+1. Ask user if the issue plan is acceptable. If not iterate until it is.
+1. As you work through the task, mark your progress using the checkboxes.
+1. After completion inform user and ask if resolution is acceptable.
+1. When writing commit messages including the issue's task, add to bottom of commit message.
+  
+### Multiple Tasks / Sizing
+
+Always document entire plan prior to beginning work. If plan is large enough or if you have multiple different tasks to complete, create issues for all of them, in order to plan and record your entire work. As you complete each task issue, select a new one to work on. If the work is large, always break down into two or more tasks. The more you break large work down into "bite"-sized tasks, the easier it will be to plan, complete, and communicate about.
+
+### Work Session Context
+
+Documenting planned work tasks will help you understand what you have completed and what is still remaining. If you have to switch contexts or stop working before completing your planned tasks, then they will remain there. When you come back you will know exactly where you left off, what is remaining, and where to begin. Always check GH Issues for items assigned to you when you begin a session. If they exist ask whether you should begin working on them.
+
+### Details
+
+* Issue Template: [.github/ISSUE_TEMPLATE/copilot-task.md](/.github\ISSUE_TEMPLATE\copilot-task.md)
+* You will use your `gh cli` tool to create and manage the issues programatically. Anytime you create an issue, you need to notify in the chat with <issue_#>:<name> as a reference/link.
+* Integration with projects, milestones will be added later.
+* Application: Most all development requires use of this task-based issue workflow. Only very minor changes arfe exaempt. When in doubt either
+  * Ask
+  * Err on side of task-based workflow
+
+#### Branch per Issue
+
+* Create a new branch off of `development` for each task/issue.
+* Naming: `issues/<issue_#>`
+* Once finished you will create a PR and assign me as a reviewer.
+
+#### Commit Message Format
+
+```markdown
+{feat,defect,}: implement user authentication
+
+- Add Google OAuth integration
+- Update user service with token validation
+- Add authentication middleware
+
+/Closes #123
+```
