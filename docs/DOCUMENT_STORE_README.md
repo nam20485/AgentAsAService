@@ -123,10 +123,10 @@ public class ProjectController : ControllerBase
 The implementation supports gradual migration:
 
 1. **Phase 1**: Project entity migrated (✅ Complete)
-2. **Phase 2**: Orchestrator entity (Planned)
-3. **Phase 3**: AgentSession entity (Planned)
+2. **Phase 2**: Orchestrator entity (✅ Complete)
+3. **Phase 3**: AgentSession entity (✅ Complete)
 
-During transition, both old (`IFirestoreService`) and new (`IProjectStore`) services coexist.
+**Migration Complete**: Legacy `IFirestoreService` has been removed and all controllers now use the new document store abstractions.
 
 ## File Structure
 
