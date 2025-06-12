@@ -47,6 +47,7 @@ namespace OrchestratorService.Controllers
                 
                 // Set the orchestrator ID
                 project.OrchestratorId = orchestrator.Id;
+                project.Team.Name = $"{project.Name} Team";
 
                 // Save the project using the new store
                 var savedProject = await _projectStore.SaveAsync(project);
