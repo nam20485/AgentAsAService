@@ -16,6 +16,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\SharedLib\SharedLib.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Folder Include="Services\" />
   </ItemGroup>
 
