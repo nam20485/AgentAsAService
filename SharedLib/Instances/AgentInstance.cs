@@ -8,15 +8,16 @@ using SharedLib.Model;
 
 namespace SharedLib.Instances
 {
-    public class AgentInstance
+    public abstract class AgentInstance : IAgentInstance
     {
-        public readonly Agent Agent;        
+        public readonly Model.Agent Agent;        
+        protected readonly ILlmClient _llmClient;
 
         public readonly string Role;
         public readonly string Script;
         public readonly string Tools;
 
-        public AgentInstance(Agent agent, string role = null, string script = null, string tools = null)
+        public AgentInstance(Agent agent, string role, string script, string tools)
         {
             Agent = agent;
             Role = role;
@@ -24,12 +25,12 @@ namespace SharedLib.Instances
             Tools = tools;
         }
 
+        // Implement IAgentInstance interface methods as abstract
+        public abstract void Start();
+        public abstract IAgentInstance.Status GetStatus();
+        public abstract void Stop();
+
         public class List : List<AgentInstance> { }
-        public class StringMap : Dictionary<string, AgentInstance>
-        {
-            public StringMap() : base(StringComparer.OrdinalIgnoreCase) { }
-            public StringMap(IEnumerable<AgentInstance> instances)
-                : base(instances.ToDictionary(i => i.Agent.Id, StringComparer.OrdinalIgnoreCase)) { }
-        }
+        public class StringMap : Dictionary<string, AgentInstance> { }
     }
 }
