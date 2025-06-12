@@ -16,6 +16,12 @@
 .PARAMETER WebPort
     Override the default web app port (5264)
 
+.PARAMETER ProjectId
+    Google Cloud Project ID for authentication (default: agent-as-a-service-459620)
+
+.PARAMETER NoToken
+    Skip generating authentication token for Swagger
+
 .EXAMPLE
     .\start-services.ps1
     Starts both services and opens browsers
@@ -27,13 +33,19 @@
 .EXAMPLE
     .\start-services.ps1 -Port 8081 -WebPort 5265
     Starts services on custom ports
+
+.EXAMPLE
+    .\start-services.ps1 -ProjectId "my-project-id" -NoToken
+    Starts services with custom project ID but skip token generation
 #>
 
 [CmdletBinding()]
 param(
     [switch]$NoBrowser,
     [int]$Port = 8080,
-    [int]$WebPort = 5264
+    [int]$WebPort = 5264,
+    [string]$ProjectId = "agent-as-a-service-459620",
+    [switch]$NoToken
 )
 
 # Colors for output
@@ -100,7 +112,8 @@ function Start-BackgroundService {
     if ($process) {
         Write-ColorOutput "✅ $ServiceName started (PID: $($process.Id))" $Green
         return $process
-    } else {
+    }
+    else {
         Write-ColorOutput "❌ Failed to start $ServiceName" $Red
         return $null
     }
@@ -154,9 +167,14 @@ try {
         Write-ColorOutput "❌ .NET SDK not found. Please install .NET 9.0 SDK." $Red
         exit 1
     }
-    
-    $dotnetVersion = dotnet --version
+      $dotnetVersion = dotnet --version
     Write-ColorOutput "✅ .NET SDK version: $dotnetVersion" $Green
+    
+    # Set Google Cloud Project ID environment variable
+    Write-ColorOutput "🔧 Setting up environment..." $Yellow
+    $env:GOOGLE_CLOUD_PROJECT = $ProjectId
+    $env:GCLOUD_PROJECT = $ProjectId
+    Write-ColorOutput "✅ Project ID set to: $ProjectId" $Green
     
     # Stop any existing services
     Stop-ServiceOnPort -Port $Port -ServiceName "OrchestratorService"
@@ -236,16 +254,38 @@ try {
             Write-ColorOutput "   • Swagger: http://localhost:$Port/swagger" $Yellow
         }
     }
-    
-    Write-ColorOutput "" $Reset
+      Write-ColorOutput "" $Reset
     Write-ColorOutput "💡 Tips:" $Blue
     Write-ColorOutput "  • Use 'stop-services.ps1' to stop all services" $Blue
     Write-ColorOutput "  • Press Ctrl+C in service terminals to stop individual services" $Blue
     Write-ColorOutput "  • Check logs in the terminal windows for debugging" $Blue
     Write-ColorOutput "" $Reset
+    
+    # Generate authentication token for Swagger
+    if (-not $NoToken) {
+        Write-ColorOutput "🔐 Generating authentication token for Swagger..." $Yellow
+        try {
+            $tokenScriptPath = Join-Path $PSScriptRoot "get-auth-token.ps1"
+            if (Test-Path $tokenScriptPath) {
+                # Try gcloud method first, fallback to firebase if needed
+                & $tokenScriptPath -Method "gcloud" -ProjectId $ProjectId
+                Write-ColorOutput "✅ Authentication token generated and copied to clipboard!" $Green
+                Write-ColorOutput "💡 You can now paste the token in Swagger UI for authenticated requests" $Blue
+            } else {
+                Write-ColorOutput "⚠️  get-auth-token.ps1 not found. Skipping token generation." $Yellow
+            }
+        }
+        catch {
+            Write-ColorOutput "⚠️  Failed to generate token: $($_.Exception.Message)" $Yellow
+            Write-ColorOutput "💡 You can manually run: .\scripts\get-auth-token.ps1 -Method gcloud -ProjectId $ProjectId" $Blue
+        }
+        Write-ColorOutput "" $Reset
+    }
+    
     Write-ColorOutput "✅ Setup complete! Services are running in the background." $Green
     
-} catch {
+}
+catch {
     Write-ColorOutput "❌ An error occurred: $($_.Exception.Message)" $Red
     exit 1
 }
