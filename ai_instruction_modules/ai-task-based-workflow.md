@@ -35,7 +35,7 @@ Documenting planned work tasks will help you understand what you have completed 
 * Tags/labels:
   * Tag issues assigned to you with 'assigned:copilot'. This will help with ambiguity in the assigned field until we start using the team repo.
   * Tag your current issue with 'state:in-progress'. Keep this tag correctly updated.
-  * Format: labels in the form *name* : *description* are interpreted as key:value pairs, i.e. this example defines a label with 'name' field = *"name"* and description field = "*description"*
+  * Format: Labels using a `key:value` structure (e.g., `type:bug`, `priority:high`) are treated as key-value pairs. For instance, in a label like `module:auth`, 'module' is the key and 'auth' is the value.
 
 ### Branch Management
 
