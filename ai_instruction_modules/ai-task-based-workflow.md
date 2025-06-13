@@ -18,7 +18,7 @@ For all non-trivial sized tasks you will complete the following process as you w
   
 ### Multiple Tasks / Sizing
 
-Always document entire plan prior to beginning work. If plan is large enough or if you have multiple different tasks to complete, create issues for all of them, in order to plan and record your entire work. As you complete each task issue, select a new one to work on. If the work is large, always break down into two or more tasks. The more you break large work down into "bite"-sized tasks, the easier it will be to plan, complete, and communicate about.
+Always document entire plan prior to beginning work. If plan is large enough or if you have multiple different tasks to complete, create issues for all of them, in order to plan and record your entire work. As you complete each task issue, select a new one to work on. If the work is large, always break down into two or more tasks. The more you break large work down into smaller easier to digest sized tasks, the easier it will be to plan, complete, and communicate about.
 
 ### Work Session Context
 
@@ -32,6 +32,10 @@ Documenting planned work tasks will help you understand what you have completed 
 * Application: Most all development requires use of this task-based issue workflow. Only very minor changes are exempt. When in doubt either:
   * Ask
   * Err on side of task-based workflow
+* Tags/labels:
+  * Tag issues assigned to you with 'assigned:copilot'. This will help with ambiguity in the assigned field until we start using the team repo.
+  * Tag your current issue with 'state:in-progress'. Keep this tag correctly updated.
+  * Format: Labels using a `key:value` structure (e.g., `type:bug`, `priority:high`) are treated as key-value pairs. For instance, in a label like `module:auth`, 'module' is the key and 'auth' is the value.
 
 ### Branch Management
 
@@ -40,13 +44,14 @@ Documenting planned work tasks will help you understand what you have completed 
 * Branch should be created from `copilot` before starting work
 * Branch should be deleted after successful merge
 * Once finished you will create a PR and assign me as a reviewer.
+* Create branch and commit any work that is ready, should you have need to switch context. **Important**. We could expose ourselves to confusion and possible code loss if we leave changes 'dangling' in the working copy. Commit frequently and often. Many small commits are always better than fewer large ones.
 * Once I move us to teams plan you will have your own assigned account so you can then assign yourself as issue owner
 * Once project/milestone integration is completed you can assign project and I will review and assign milestone (or you can ask if obvious)
 
 #### Commit Message Format
 
 ```markdown
-{feat,defect,}: implement user authentication
+{ feat,defect,etc. }: implement user authentication
 
 - Add Google OAuth integration
 - Update user service with token validation
