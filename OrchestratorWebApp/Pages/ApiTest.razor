@@ -1,0 +1,190 @@
+@page "/api-test"
+@using System.Net.Http
+@using System.Text.Json
+@using Microsoft.JSInterop
+@inject HttpClient Http
+
+<h1>API Connectivity Test</h1>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5>Service Health Check</h5>
+            </div>
+            <div class="card-body">
+                <button class="btn btn-primary" @onclick="TestHealthEndpoint">Test Health Endpoint</button>
+                <div class="mt-3">
+                    <strong>Status:</strong> 
+                    <span class="@GetStatusClass(healthStatus)">@healthStatus</span>
+                </div>
+                @if (!string.IsNullOrEmpty(healthResponse))
+                {
+                    <div class="mt-2">
+                        <strong>Response:</strong>
+                        <pre class="bg-light p-2">@healthResponse</pre>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5>Orchestrators API</h5>
+            </div>
+            <div class="card-body">
+                <button class="btn btn-success" @onclick="TestOrchestratorsEndpoint">Get Orchestrators</button>
+                <div class="mt-3">
+                    <strong>Status:</strong> 
+                    <span class="@GetStatusClass(orchestratorsStatus)">@orchestratorsStatus</span>
+                </div>
+                @if (!string.IsNullOrEmpty(orchestratorsResponse))
+                {
+                    <div class="mt-2">
+                        <strong>Response:</strong>
+                        <pre class="bg-light p-2" style="max-height: 300px; overflow-y: auto;">@orchestratorsResponse</pre>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5>Create Test Orchestrator</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label for="orchestratorName" class="form-label">Orchestrator Name:</label>
+                    <input type="text" class="form-control" id="orchestratorName" @bind="newOrchestratorName" placeholder="Enter orchestrator name" />
+                </div>
+                <button class="btn btn-warning" @onclick="CreateTestOrchestrator" disabled="@string.IsNullOrWhiteSpace(newOrchestratorName)">Create Orchestrator</button>
+                <div class="mt-3">
+                    <strong>Status:</strong> 
+                    <span class="@GetStatusClass(createStatus)">@createStatus</span>
+                </div>
+                @if (!string.IsNullOrEmpty(createResponse))
+                {
+                    <div class="mt-2">
+                        <strong>Response:</strong>
+                        <pre class="bg-light p-2">@createResponse</pre>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="alert alert-info">
+            <h6>Configuration Info</h6>
+            <p><strong>Base URL:</strong> @Http.BaseAddress</p>
+            <p><strong>Environment:</strong> Development (Authentication Bypassed)</p>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string healthStatus = "Not tested";
+    private string healthResponse = "";
+    
+    private string orchestratorsStatus = "Not tested";
+    private string orchestratorsResponse = "";
+    
+    private string createStatus = "Not tested";
+    private string createResponse = "";
+    
+    private string newOrchestratorName = "";
+
+    private async Task TestHealthEndpoint()
+    {
+        try
+        {
+            healthStatus = "Testing...";
+            StateHasChanged();
+            
+            var response = await Http.GetStringAsync("/health");
+            healthStatus = "✓ Success";
+            healthResponse = response;
+        }
+        catch (Exception ex)
+        {
+            healthStatus = "✗ Failed";
+            healthResponse = $"Error: {ex.Message}";
+        }
+        
+        StateHasChanged();
+    }
+    
+    private async Task TestOrchestratorsEndpoint()
+    {
+        try
+        {
+            orchestratorsStatus = "Testing...";
+            StateHasChanged();
+            
+            var response = await Http.GetStringAsync("/api/orchestrators");
+            orchestratorsStatus = "✓ Success";
+            orchestratorsResponse = response;
+        }
+        catch (Exception ex)
+        {
+            orchestratorsStatus = "✗ Failed";
+            orchestratorsResponse = $"Error: {ex.Message}";
+        }
+        
+        StateHasChanged();
+    }
+    
+    private async Task CreateTestOrchestrator()
+    {
+        try
+        {
+            createStatus = "Creating...";
+            StateHasChanged();
+            
+            var requestData = new { name = newOrchestratorName.Trim() };
+            var json = JsonSerializer.Serialize(requestData);
+            var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+            
+            var response = await Http.PostAsync("/api/orchestrators", content);
+            var responseContent = await response.Content.ReadAsStringAsync();
+            
+            if (response.IsSuccessStatusCode)
+            {
+                createStatus = "✓ Created Successfully";
+                createResponse = responseContent;
+                newOrchestratorName = ""; // Clear the input
+            }
+            else
+            {
+                createStatus = $"✗ Failed ({response.StatusCode})";
+                createResponse = responseContent;
+            }
+        }
+        catch (Exception ex)
+        {
+            createStatus = "✗ Failed";
+            createResponse = $"Error: {ex.Message}";
+        }
+        
+        StateHasChanged();
+    }
+    
+    private string GetStatusClass(string status)
+    {
+        return status switch
+        {
+            var s when s.StartsWith("✓") => "text-success",
+            var s when s.StartsWith("✗") => "text-danger",
+            "Testing..." or "Creating..." => "text-warning",
+            _ => "text-muted"
+        };
+    }
+}

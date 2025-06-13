@@ -1,0 +1,342 @@
+@page "/projects/{ProjectId}/team"
+@using System.Net.Http
+@using System.Text.Json
+@using SharedLib.Model
+@using SharedLib.DTOs
+@inject HttpClient Http
+@inject NavigationManager Navigation
+
+<PageTitle>Team Management - Agent as a Service</PageTitle>
+
+<div class="container-fluid">
+    @if (project == null)
+    {
+        <div class="text-center">
+            <div class="spinner-border" role="status">
+                <span class="sr-only">Loading...</span>
+            </div>
+            <p class="mt-2">Loading team details...</p>
+        </div>
+    }
+    else
+    {
+        <div class="row mb-4">
+            <div class="col-12">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="/projects">Projects</a></li>
+                        <li class="breadcrumb-item"><a href="/projects/@ProjectId">@project.Name</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Team</li>
+                    </ol>
+                </nav>
+                <h1>👥 @project.Team.Name</h1>
+                <p class="text-muted">Managing team for project: <strong>@project.Name</strong></p>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">🤖 Team Members (@project.Team.Members.Count)</h5>
+                        <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addAgentModal">
+                            <i class="fas fa-plus"></i> Add Agent
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        @if (project.Team.Members.Count == 0)
+                        {
+                            <div class="text-center text-muted py-4">
+                                <i class="fas fa-user-plus fa-3x mb-3"></i>
+                                <p>No agents in this team yet. Add your first agent to get started!</p>
+                                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addAgentModal">
+                                    Add First Agent
+                                </button>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Agent Name</th>
+                                            <th>Type</th>
+                                            <th>Created</th>
+                                            <th>Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var member in project.Team.Members)
+                                        {
+                                            <tr>
+                                                <td>
+                                                    <strong>@member.Name</strong>
+                                                    <br><small class="text-muted">ID: @member.Id</small>
+                                                </td>
+                                                <td><span class="badge bg-secondary">Collaborator</span></td>
+                                                <td>@member.CreatedAt.ToString("MMM dd, yyyy HH:mm")</td>
+                                                <td><span class="badge bg-success">Active</span></td>
+                                                <td>
+                                                    <div class="btn-group btn-group-sm" role="group">
+                                                        <a href="/projects/@ProjectId/agents/@member.Id" class="btn btn-outline-info">
+                                                            <i class="fas fa-eye"></i> View
+                                                        </a>
+                                                        <button class="btn btn-outline-warning" @onclick="() => StopAgent(member.Id)">
+                                                            <i class="fas fa-stop"></i> Stop
+                                                        </button>
+                                                        <button class="btn btn-outline-danger" @onclick="() => RemoveAgent(member.Id)">
+                                                            <i class="fas fa-trash"></i> Remove
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">📊 Team Statistics</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row text-center">
+                            <div class="col-6">
+                                <h3 class="text-primary">@project.Team.Members.Count</h3>
+                                <p class="text-muted small">Total Agents</p>
+                            </div>
+                            <div class="col-6">
+                                <h3 class="text-success">@project.Team.Members.Count</h3>
+                                <p class="text-muted small">Active Agents</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">🔗 Quick Links</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <a href="/projects/@ProjectId" class="btn btn-outline-primary">
+                                <i class="fas fa-arrow-left"></i> Back to Project
+                            </a>
+                            <a href="/projects" class="btn btn-outline-secondary">
+                                <i class="fas fa-list"></i> All Projects
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                @if (!string.IsNullOrEmpty(actionMessage))
+                {
+                    <div class="alert @(actionSuccess ? "alert-success" : "alert-danger")" role="alert">
+                        @actionMessage
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Add Agent Modal -->
+<div class="modal fade" id="addAgentModal" tabindex="-1" aria-labelledby="addAgentModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addAgentModalLabel">➕ Add New Agent</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form @onsubmit="AddAgent" @onsubmit:preventDefault="true">
+                <div class="modal-body">                    <div class="mb-3">
+                        <label for="agentName" class="form-label">Agent Name</label>
+                        <input type="text" class="form-control" id="agentName" @bind="newAgent.AgentName" required>
+                        <div class="form-text">Choose a descriptive name for the agent</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary" disabled="@isAddingAgent">
+                        @if (isAddingAgent)
+                        {
+                            <span class="spinner-border spinner-border-sm me-2"></span>
+                        }
+                        Add Agent
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@code {    [Parameter] public string ProjectId { get; set; } = "";
+      private SharedLib.Model.Project? project;
+    private AddAgentToTeamRequest newAgent = new();
+    private bool isAddingAgent = false;
+    private string actionMessage = "";
+    private bool actionSuccess = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadProject();
+    }
+
+    private async Task LoadProject()
+    {
+        try
+        {            var response = await Http.GetStringAsync($"/api/projects/{ProjectId}");
+            project = JsonSerializer.Deserialize<SharedLib.Model.Project>(response, new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            });
+        }
+        catch (Exception ex)
+        {
+            actionMessage = $"Failed to load project: {ex.Message}";
+            actionSuccess = false;
+        }
+    }
+
+    private async Task AddAgent()
+    {
+        if (string.IsNullOrWhiteSpace(newAgent.AgentName))
+        {
+            actionMessage = "Agent name is required.";
+            actionSuccess = false;
+            return;
+        }
+
+        isAddingAgent = true;
+        actionMessage = "";
+        StateHasChanged();        try
+        {
+            // Set the ProjectId on the request
+            newAgent.ProjectId = ProjectId;
+
+            var json = JsonSerializer.Serialize(newAgent, new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            });
+            var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+            
+            var response = await Http.PostAsync($"/api/team/projects/{ProjectId}/agents", content);
+            var responseContent = await response.Content.ReadAsStringAsync();
+            
+            if (response.IsSuccessStatusCode)
+            {
+                actionMessage = "Agent added successfully!";
+                actionSuccess = true;
+                newAgent = new AddAgentToTeamRequest(); // Reset form
+                await LoadProject(); // Refresh the project data
+            }
+            else
+            {
+                actionMessage = $"Failed to add agent: {responseContent}";
+                actionSuccess = false;
+            }
+        }
+        catch (Exception ex)
+        {
+            actionMessage = $"Error adding agent: {ex.Message}";
+            actionSuccess = false;
+        }
+        finally
+        {
+            isAddingAgent = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task StopAgent(string agentId)
+    {
+        try
+        {
+            var response = await Http.PostAsync($"/api/team/projects/{ProjectId}/agents/{agentId}/stop", null);
+            if (response.IsSuccessStatusCode)
+            {
+                actionMessage = "Agent stopped successfully!";
+                actionSuccess = true;
+            }
+            else
+            {
+                var responseContent = await response.Content.ReadAsStringAsync();
+                actionMessage = $"Failed to stop agent: {responseContent}";
+                actionSuccess = false;
+            }
+        }
+        catch (Exception ex)
+        {
+            actionMessage = $"Error stopping agent: {ex.Message}";
+            actionSuccess = false;
+        }
+    }
+
+    private async Task RemoveAgent(string agentId)
+    {
+        try
+        {
+            var response = await Http.DeleteAsync($"/api/team/projects/{ProjectId}/agents/{agentId}");
+            if (response.IsSuccessStatusCode)
+            {
+                actionMessage = "Agent removed successfully!";
+                actionSuccess = true;
+                await LoadProject(); // Refresh the project data
+            }
+            else
+            {
+                var responseContent = await response.Content.ReadAsStringAsync();
+                actionMessage = $"Failed to remove agent: {responseContent}";
+                actionSuccess = false;
+            }
+        }
+        catch (Exception ex)
+        {
+            actionMessage = $"Error removing agent: {ex.Message}";
+            actionSuccess = false;
+        }
+    }    // Data models
+    public class ProjectModel
+    {
+        public string Id { get; set; } = "";
+        public string Name { get; set; } = "";
+        public string OrchestratorId { get; set; } = "";
+        public RepositoryModel? Repository { get; set; }
+        public TeamModel Team { get; set; } = new TeamModel();
+        public DateTime CreatedAt { get; set; }
+    }
+
+    public class RepositoryModel
+    {
+        public string Id { get; set; } = "";
+        public string Name { get; set; } = "";
+        public string Address { get; set; } = "";
+    }
+
+    public class TeamModel
+    {
+        public string Id { get; set; } = "";
+        public string Name { get; set; } = "";
+        public List<CollaboratorModel> Members { get; set; } = new List<CollaboratorModel>();
+    }
+
+    public class CollaboratorModel
+    {
+        public string Id { get; set; } = "";
+        public string Name { get; set; } = "";
+        public DateTime CreatedAt { get; set; }
+    }
+
+    public class AddAgentRequest
+    {
+        public string AgentName { get; set; } = "";
+        public string AgentType { get; set; } = "Collaborator";
+    }
+}

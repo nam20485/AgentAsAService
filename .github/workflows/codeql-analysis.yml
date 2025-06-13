@@ -2,11 +2,11 @@ name: "CodeQL Security Analysis"
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "development" ]
   pull_request:
-    branches: [ "main" ]
-  schedule:
-    - cron: '0 2 * * 1' # Weekly on Mondays at 2 AM UTC
+    branches: [ "main", "development" ]
+  # schedule:
+  #   - cron: '0 2 * * 1' # Weekly on Mondays at 2 AM UTC
 
 permissions:
   actions: read
@@ -38,7 +38,7 @@ jobs:
         if: matrix.language == 'csharp'
         uses: actions/setup-dotnet@6bd8b7f7774af54e05809fcc5431931b3eb1ddee # v4.0.1
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: '9.0.102'
 
       - name: Setup Node.js
         if: matrix.language == 'javascript'
@@ -74,9 +74,9 @@ jobs:
         with:
           category: "/language:${{matrix.language}}"
           
-      # Upload results to GitHub Security tab
-      - name: Upload CodeQL results
-        uses: github/codeql-action/upload-sarif@e2b3eafc8d227b0241d48be5f425d47c2d750a13 # v3.26.10
-        if: always()
-        with:
-          sarif_file: ../results/
+      # # Upload results to GitHub Security tab
+      # - name: Upload CodeQL results
+      #   uses: github/codeql-action/upload-sarif@e2b3eafc8d227b0241d48be5f425d47c2d750a13 # v3.26.10
+      #   if: always()
+      #   with:
+      #     sarif_file: ../results/
