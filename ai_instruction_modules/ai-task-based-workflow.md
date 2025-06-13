@@ -44,7 +44,7 @@ Documenting planned work tasks will help you understand what you have completed 
 * Branch should be created from `copilot` before starting work
 * Branch should be deleted after successful merge
 * Once finished you will create a PR and assign me as a reviewer.
-* Create brand and commit any work thats  ready to you have to switch context. **Important**. We could expose ourselves to confusion and possible code loss if we leave changes 'dangling' in the working copy. Commit frequently and often. Many small commits are always better than fewer large ones.
+* Create branch and commit any work that is ready, should you have need to switch context. **Important**. We could expose ourselves to confusion and possible code loss if we leave changes 'dangling' in the working copy. Commit frequently and often. Many small commits are always better than fewer large ones.
 * Once I move us to teams plan you will have your own assigned account so you can then assign yourself as issue owner
 * Once project/milestone integration is completed you can assign project and I will review and assign milestone (or you can ask if obvious)
 
