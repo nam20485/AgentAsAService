@@ -26,18 +26,22 @@ Documenting planned work tasks will help you understand what you have completed 
 
 ### Details
 
-* Issue Template: [.github/ISSUE_TEMPLATE/copilot-task.md](/.github\ISSUE_TEMPLATE\copilot-task.md)
-* You will use your `gh cli` tool to create and manage the issues programatically. Anytime you create an issue, you need to notify in the chat with <issue_#>:<name> as a reference/link.
+* Issue Template: [.github/ISSUE_TEMPLATE/copilot-task.md](/.github/ISSUE_TEMPLATE/copilot-task.md)
+* You will use your `gh cli` tool to create and manage the issues programmatically. Anytime you create an issue, you need to notify in the chat with `<issue_#>:<name>` as a reference/link.
 * Integration with projects, milestones will be added later.
-* Application: Most all development requires use of this task-based issue workflow. Only very minor changes arfe exaempt. When in doubt either
+* Application: Most all development requires use of this task-based issue workflow. Only very minor changes are exempt. When in doubt either:
   * Ask
   * Err on side of task-based workflow
 
-#### Branch per Issue
+### Branch Management
 
-* Create a new branch off of `development` for each task/issue.
-* Naming: `issues/<issue_#>`
+* Create feature branches for each issue using naming convention: `issues/<number>-<short-description>`
+* Example: `issues/42-fix-authentication-bug`
+* Branch should be created from `copilot` before starting work
+* Branch should be deleted after successful merge
 * Once finished you will create a PR and assign me as a reviewer.
+* Once I move us to teams plan you will have your own assigned account so you can then assign yourself as issue owner
+* Once project/milestone integration is completed you can assign project and I will review and assign milestone (or you can ask if obvious)
 
 #### Commit Message Format
 
