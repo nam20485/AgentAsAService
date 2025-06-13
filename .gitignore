@@ -25,7 +25,7 @@ project.fragment.lock.json
 artifacts/
 
 # Visual Studio Code
-.vscode/
+#.vscode/
 
 # Others
 *.log

@@ -1,0 +1,198 @@
+@page "/status"
+@using System.Net.Http
+@using System.Text.Json
+@inject HttpClient Http
+
+<PageTitle>System Status - Agent as a Service</PageTitle>
+
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1>📊 System Status</h1>
+            <p class="text-muted">Monitor system health and service status.</p>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">🏥 Health Check</h5>
+                    <button class="btn btn-sm btn-outline-primary" @onclick="RefreshHealth">
+                        <i class="fas fa-sync-alt"></i> Refresh
+                    </button>
+                </div>
+                <div class="card-body">
+                    @if (healthData == null)
+                    {
+                        <div class="text-center">
+                            <div class="spinner-border" role="status">
+                                <span class="sr-only">Loading...</span>
+                            </div>
+                            <p class="mt-2">Loading health status...</p>
+                        </div>
+                    }
+                    else if (healthError != null)
+                    {
+                        <div class="alert alert-danger" role="alert">
+                            <h4 class="alert-heading">❌ Service Unavailable</h4>
+                            <p>@healthError</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="text-center">
+                                    <div class="display-4 text-success">✅</div>
+                                    <h5>Overall Status</h5>
+                                    <p class="text-success">@healthData.Status</p>
+                                </div>
+                            </div>
+                            <div class="col-md-9">
+                                <h6>Service Components:</h6>
+                                <div class="table-responsive">
+                                    <table class="table table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th>Component</th>
+                                                <th>Status</th>
+                                                <th>Description</th>
+                                                <th>Duration (ms)</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var check in healthData.Checks)
+                                            {
+                                                <tr>
+                                                    <td><strong>@check.Key</strong></td>
+                                                    <td>
+                                                        <span class="badge @GetHealthBadgeClass(check.Value.Status)">
+                                                            @check.Value.Status
+                                                        </span>
+                                                    </td>
+                                                    <td>@check.Value.Description</td>
+                                                    <td>@check.Value.Duration.ToString("F1")</td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <small class="text-muted">Total Duration: @healthData.TotalDuration.ToString("F1")ms</small>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">🔧 Configuration</h5>
+                </div>
+                <div class="card-body">
+                    <dl class="row">
+                        <dt class="col-sm-4">Environment:</dt>
+                        <dd class="col-sm-8">Development</dd>
+                        
+                        <dt class="col-sm-4">Web App URL:</dt>
+                        <dd class="col-sm-8">http://localhost:5264</dd>
+                        
+                        <dt class="col-sm-4">API Base URL:</dt>
+                        <dd class="col-sm-8">http://localhost:8080</dd>
+                        
+                        <dt class="col-sm-4">Database:</dt>
+                        <dd class="col-sm-8">LiteDB (Development)</dd>
+                        
+                        <dt class="col-sm-4">Authentication:</dt>
+                        <dd class="col-sm-8">Bypassed (Development)</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">🚀 Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="/api-test" class="btn btn-primary">
+                            <i class="fas fa-vial"></i> Run API Tests
+                        </a>
+                        <a href="/projects" class="btn btn-success">
+                            <i class="fas fa-plus"></i> Create New Project
+                        </a>
+                        <button class="btn btn-info" @onclick="RefreshHealth">
+                            <i class="fas fa-sync-alt"></i> Refresh Health Status
+                        </button>
+                        <a href="http://localhost:8080/swagger" target="_blank" class="btn btn-outline-secondary">
+                            <i class="fas fa-book"></i> API Documentation
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private HealthData? healthData;
+    private string? healthError;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await RefreshHealth();
+    }
+
+    private async Task RefreshHealth()
+    {
+        healthData = null;
+        healthError = null;
+        StateHasChanged();
+
+        try
+        {
+            var response = await Http.GetStringAsync("/health");
+            healthData = JsonSerializer.Deserialize<HealthData>(response, new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            });
+        }
+        catch (Exception ex)
+        {
+            healthError = ex.Message;
+        }
+
+        StateHasChanged();
+    }
+
+    private string GetHealthBadgeClass(string status)
+    {
+        return status.ToLower() switch
+        {
+            "healthy" => "bg-success",
+            "unhealthy" => "bg-danger",
+            "degraded" => "bg-warning",
+            _ => "bg-secondary"
+        };
+    }
+
+    public class HealthData
+    {
+        public string Status { get; set; } = "";
+        public Dictionary<string, HealthCheck> Checks { get; set; } = new();
+        public double TotalDuration { get; set; }
+    }
+
+    public class HealthCheck
+    {
+        public string Status { get; set; } = "";
+        public string Description { get; set; } = "";
+        public double Duration { get; set; }
+    }
+}

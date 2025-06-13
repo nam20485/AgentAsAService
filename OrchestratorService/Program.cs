@@ -5,29 +5,63 @@ using Microsoft.IdentityModel.Tokens;
 using OrchestratorService.Services;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using SharedLib.Extensions;
 
 internal class Program
 {
     private static void Main(string[] args)
     {
-        var builder = WebApplication.CreateBuilder(args);
-
-        // Configure Kestrel to use the PORT environment variable if available
+        var builder = WebApplication.CreateBuilder(args);        // Configure Kestrel to use the PORT environment variable if available
+        // In production (Cloud Run): uses $PORT from container environment
+        // In development: uses default port 8080 if PORT not set
         var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
         builder.WebHost.UseUrls($"http://*:{port}");
 
         // Add services to the container.
         builder.Services.AddControllers();
         builder.Services.AddEndpointsApiExplorer();
-        builder.Services.AddSwaggerGen();
+        builder.Services.AddSwaggerGen(c =>
+        {
+            c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo 
+            { 
+                Title = "Orchestrator Service API", 
+                Version = "v1" 
+            });
+            
+            // Add JWT authentication to Swagger
+            c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+            {
+                Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
+                Name = "Authorization",
+                In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+                Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey,
+                Scheme = "Bearer"
+            });
+            
+            c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+            {
+                {
+                    new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+                    {
+                        Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                        {
+                            Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                            Id = "Bearer"
+                        }
+                    },
+                    new string[] {}
+                }
+            });
+        });
 
         // Add HTTP client factory
         builder.Services.AddHttpClient();
 
         // Register HTTP client services
-        builder.Services.AddHttpClient<IAgentHttpClientService, AgentHttpClientService>();
+        builder.Services.AddHttpClient<IAgentHttpClientService, AgentHttpClientService>();        // Add document store services (replaces direct Firestore registration)
+        builder.Services.AddDocumentStore(builder.Configuration);
 
-        // Add Google Cloud Firestore
+        // Add Google Cloud Firestore (still needed for direct usage in some controllers)
         builder.Services.AddSingleton(provider =>
         {
             var projectId = builder.Configuration["GoogleCloud:ProjectId"];
@@ -48,13 +82,45 @@ internal class Program
                     ValidateLifetime = true,
                     ClockSkew = TimeSpan.Zero
                 };
-            });
-
-        // Add Authorization
+            });        // Add Authorization with environment-specific policies
         builder.Services.AddAuthorization(options =>
         {
-            options.AddPolicy("RequireAuthenticatedUser", policy =>
-                policy.RequireAuthenticatedUser());
+            if (builder.Environment.IsDevelopment() || builder.Environment.EnvironmentName == "Testing")
+            {
+                // Development & Testing: bypass authentication for easier testing
+                options.AddPolicy("RequireAuthenticatedUser", policy =>
+                    policy.RequireAssertion(_ => true)); // Always allow
+                
+                options.AddPolicy("RequireServiceAuthentication", policy =>
+                    policy.RequireAssertion(_ => true)); // Always allow in development
+            }
+            else if (builder.Environment.IsStaging())
+            {
+                // Staging: require authentication but may be more permissive
+                options.AddPolicy("RequireAuthenticatedUser", policy =>
+                    policy.RequireAuthenticatedUser());
+                
+                options.AddPolicy("RequireServiceAuthentication", policy =>
+                    policy.RequireAuthenticatedUser());
+            }
+            else if (builder.Environment.IsProduction())
+            {
+                // Production: strict authentication policy
+                options.AddPolicy("RequireAuthenticatedUser", policy =>
+                    policy.RequireAuthenticatedUser());
+                
+                options.AddPolicy("RequireServiceAuthentication", policy =>
+                    policy.RequireAuthenticatedUser());
+            }
+            else
+            {
+                // Default: require authentication
+                options.AddPolicy("RequireAuthenticatedUser", policy =>
+                    policy.RequireAuthenticatedUser());
+                
+                options.AddPolicy("RequireServiceAuthentication", policy =>
+                    policy.RequireAuthenticatedUser());
+            }
         });
 
         // Add CORS for Blazor WebAssembly
@@ -199,35 +265,7 @@ internal class Program
 
         app.MapControllers();
 
-        var firebaseApp = FirebaseApp.Create();
-
-        var summaries = new[]
-        {
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-        app.MapGet("/weatherforecast", () =>
-        {
-            var forecast = Enumerable.Range(1, 5).Select(index =>
-                new WeatherForecast
-                (
-                    DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                    Random.Shared.Next(-20, 55),
-                    summaries[Random.Shared.Next(summaries.Length)]
-                ))
-                .ToArray();
-            return forecast;
-        })
-        .WithName("GetWeatherForecast")
-        .WithOpenApi();
-
-
-
+        var firebaseApp = FirebaseApp.Create();      
         app.Run();
     }
-}
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
 }

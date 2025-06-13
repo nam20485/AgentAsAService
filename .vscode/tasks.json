@@ -1,0 +1,390 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "build",
+			"command": "dotnet",
+			"type": "shell",
+			"args": [
+				"build",
+				"AgentAsAService.sln"
+			],
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
+			"problemMatcher": [
+				"$msCompile"
+			]
+		},
+		{
+			"type": "dotnet",
+			"task": "watch OrchestratorService",
+			"file": "${workspaceFolder}/OrchestratorService/OrchestratorService.csproj",
+			"problemMatcher": [],
+			"label": "dotnet: watch OrchestratorService"
+		},
+		{
+			"label": "docker-build: orchestratorservice",
+			"type": "docker-build",
+			"dockerBuild": {
+				"dockerfile": "${workspaceFolder}/OrchestratorService/Dockerfile",
+				"context": "${workspaceFolder}",
+				"pull": true,
+				"tag": "orchestratorservice:latest"
+			},
+			"netCore": {
+				"appProject": "${workspaceFolder}/OrchestratorService/OrchestratorService.csproj"
+			}
+		},
+		{
+			"label": "docker-compose: up orchestratorservice debug",
+			"type": "shell",
+			"command": "docker-compose",
+			"args": [
+				"-f",
+				"docker-compose.yml",
+				"-f",
+				"docker-compose.debug.yml",
+				"up",
+				"-d",
+				"--build",
+				"orchestratorservice"
+			],
+			"options": {
+				"cwd": "${workspaceFolder}"
+			},
+			"group": "build",
+			"problemMatcher": []
+		},
+		{
+			"label": "docker-compose: up all debug",
+			"type": "shell",
+			"command": "docker-compose",
+			"args": [
+				"-f",
+				"docker-compose.yml",
+				"-f",
+				"docker-compose.debug.yml",
+				"up",
+				"-d",
+				"--build"
+			],
+			"options": {
+				"cwd": "${workspaceFolder}"
+			},
+			"group": "build",
+			"problemMatcher": []
+		},
+		{
+			"label": "Start OrchestratorService",
+			"type": "shell",
+			"command": "dotnet",
+			"args": ["run"],
+			"options": {
+				"cwd": "${workspaceFolder}/OrchestratorService"
+			},
+			"group": "build",
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false,
+				"panel": "dedicated",
+				"showReuseMessage": true,
+				"clear": false
+			},
+			"isBackground": true,
+			"problemMatcher": {
+				"owner": "custom",
+				"pattern": {
+					"regexp": "^.*$"
+				},
+				"background": {
+					"activeOnStart": true,
+					"beginsPattern": "^.*Building.*$",
+					"endsPattern": "^.*Application started.*$"
+				}
+			}
+		},
+		{
+			"label": "Start OrchestratorWebApp",
+			"type": "shell",
+			"command": "dotnet",
+			"args": ["run"],
+			"options": {
+				"cwd": "${workspaceFolder}/OrchestratorWebApp"
+			},
+			"group": "build",
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false,
+				"panel": "dedicated",
+				"showReuseMessage": true,
+				"clear": false
+			},
+			"isBackground": true,
+			"problemMatcher": {
+				"owner": "custom",
+				"pattern": {
+					"regexp": "^.*$"
+				},
+				"background": {
+					"activeOnStart": true,
+					"beginsPattern": "^.*Building.*$",
+					"endsPattern": "^.*Application started.*$"
+				}
+			},
+			"dependsOn": "Start OrchestratorService"
+		},
+		{
+			"label": "Open Browser - WebApp",
+			"type": "shell",
+			"command": "start",
+			"args": ["http://localhost:5264"],
+			"windows": {
+				"command": "start",
+				"args": ["http://localhost:5264"]
+			},
+			"linux": {
+				"command": "xdg-open",
+				"args": ["http://localhost:5264"]
+			},
+			"osx": {
+				"command": "open",
+				"args": ["http://localhost:5264"]
+			},
+			"group": "test",
+			"presentation": {
+				"echo": false,
+				"reveal": "silent",
+				"focus": false,
+				"panel": "shared",
+				"showReuseMessage": false,
+				"clear": false
+			}
+		},
+		{
+			"label": "Open Browser - Swagger",
+			"type": "shell",
+			"command": "start",
+			"args": ["http://localhost:8080/swagger"],
+			"windows": {
+				"command": "start",
+				"args": ["http://localhost:8080/swagger"]
+			},
+			"linux": {
+				"command": "xdg-open",
+				"args": ["http://localhost:8080/swagger"]
+			},
+			"osx": {
+				"command": "open",
+				"args": ["http://localhost:8080/swagger"]
+			},
+			"group": "test",
+			"presentation": {
+				"echo": false,
+				"reveal": "silent",
+				"focus": false,
+				"panel": "shared",
+				"showReuseMessage": false,
+				"clear": false
+			}
+		},
+		{
+			"label": "Create local-storage directory",
+			"type": "shell",
+			"command": "mkdir",
+			"args": ["-p", "${workspaceFolder}/OrchestratorService/local-storage"],
+			"windows": {
+				"command": "powershell",
+				"args": ["-Command", "New-Item -ItemType Directory -Path '${workspaceFolder}/OrchestratorService/local-storage' -Force"]
+			},
+			"group": "build",
+			"presentation": {
+				"echo": false,
+				"reveal": "silent",
+				"focus": false,
+				"panel": "shared",
+				"showReuseMessage": false,
+				"clear": false
+			}
+		},
+		{
+			"label": "Wait for Service Ready",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-Command",
+				"$timeout = 30; $elapsed = 0; do { Start-Sleep -Seconds 2; $elapsed += 2; try { $response = Invoke-RestMethod -Uri 'http://localhost:8080/health' -TimeoutSec 2; Write-Host 'Service ready!'; break } catch { if ($elapsed -ge $timeout) { Write-Host 'Timeout waiting for service'; exit 1 } } } while ($true)"
+			],
+			"group": "test",
+			"presentation": {
+				"echo": true,
+				"reveal": "silent",
+				"focus": false,
+				"panel": "shared",
+				"showReuseMessage": false,
+				"clear": false
+			}
+		},
+		{
+			"label": "Start AgentAsAService (Full Stack)",
+			"dependsOrder": "sequence",
+			"dependsOn": [
+				"Create local-storage directory",
+				"Start OrchestratorService",
+				"Start OrchestratorWebApp",
+				"Wait for Service Ready",
+				"Open Browser - WebApp",
+				"Open Browser - Swagger"
+			],
+			"group": {
+				"kind": "build",
+				"isDefault": false
+			},
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": true,
+				"panel": "shared",
+				"showReuseMessage": true,
+				"clear": true
+			}
+		},
+		{
+			"label": "Run Startup Script",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-ExecutionPolicy", "Bypass",
+				"-File", "${workspaceFolder}/start-services.ps1"
+			],
+			"group": {
+				"kind": "build",
+				"isDefault": false
+			},
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": true,
+				"panel": "dedicated",
+				"showReuseMessage": true,
+				"clear": true
+			},
+			"isBackground": false
+		},
+		{
+			"label": "Stop All Services",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-Command",
+				"$processes = netstat -ano | Select-String ':8080\\s|:5264\\s' | ForEach-Object { $parts = $_.ToString().Split() | Where-Object { $_ -ne '' }; if ($parts.Length -ge 5) { $parts[4] } }; foreach ($processId in $processes) { if ($processId -and $processId -match '^\\d+$') { try { Write-Host \"Stopping process $processId...\"; Stop-Process -Id $processId -Force -ErrorAction SilentlyContinue } catch { } } }; Write-Host 'All services stopped'"
+			},
+			"group": "build",
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false,
+				"panel": "shared",
+				"showReuseMessage": false,
+				"clear": false
+			}
+		},
+		{
+			"label": "Start All Services (Script)",
+			"type": "shell",
+			"command": "pwsh",
+			"args": [
+				"-ExecutionPolicy",
+				"Bypass",
+				"-File",
+				"scripts/start-services.ps1",
+				"-NoOpenBrowser"
+			],
+			"group": "build",
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false,
+				"panel": "new"
+			},
+			"problemMatcher": []
+		},
+		{
+			"label": "Stop All Services (Script)",
+			"type": "shell",
+			"command": "pwsh",
+			"args": [
+				"-ExecutionPolicy",
+				"Bypass",
+				"-File",
+				"scripts/stop-services.ps1"
+			],
+			"group": "build",
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false,
+				"panel": "new"
+			},
+			"problemMatcher": []
+		},
+		{
+			"label": "Start OrchestratorService Only",
+			"type": "shell",
+			"command": "dotnet",
+			"args": ["run"],
+			"group": "build",
+			"options": {
+				"cwd": "${workspaceFolder}/OrchestratorService"
+			},
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false,
+				"panel": "new"
+			},
+			"problemMatcher": [],
+			"isBackground": true
+		},
+		{
+			"label": "Start OrchestratorWebApp Only",
+			"type": "shell",
+			"command": "dotnet",
+			"args": ["run"],
+			"group": "build",
+			"options": {
+				"cwd": "${workspaceFolder}/OrchestratorWebApp"
+			},
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false,
+				"panel": "new"
+			},
+			"problemMatcher": [],
+			"isBackground": true,
+			"dependsOn": "Start OrchestratorService Only"
+		},
+		{
+			"label": "Start All Services (VS Code Tasks)",
+			"dependsOrder": "sequence",
+			"dependsOn": [
+				"Start OrchestratorService Only",
+				"Start OrchestratorWebApp Only"
+			],
+			"group": {
+				"kind": "build",
+				"isDefault": false
+			},
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false,
+				"panel": "shared"
+			}
+		}
+	]
+}
