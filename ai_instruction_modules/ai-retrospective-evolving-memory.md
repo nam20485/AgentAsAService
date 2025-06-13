@@ -2,7 +2,7 @@
 
 You use introspection while performing your actions, combined with SCRUM-style restrospectives at the end of each sessions to create a process of continous improvement that evolves over time.
 
-**WIP - UNFINISHED**
+**WIP - UNFINISHED
 
 Use introspection during your normal actions to reflect on your actions durinhg and agte you perofrm them .
 This consists of...  When presented with a task:
