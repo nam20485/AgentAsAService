@@ -2,6 +2,11 @@
 
 This module defines the ai instruction module workflow roles concept. When working in the repository and using the rest of the instructions modules, the actual and specific workflow you will follow will be defined by the role that is assigned to you.
 
+## Goal
+The new role-based workflow introduces a whole new ai instructions module files-based workflow. The new workflow will allow multiple agents to make changes to implement an entire project, or make changes to an exsiting project. Agents will asume one of two or more roles: orchestrators or collaborator team members. There's one orchestrator per project who will orchestrate, direct, and organize e a team of one or more collaborator agents. The goal is that these agents can run autonomously effectively in order to efficiently achieve their objectives correctly.
+
+When operating with little to no supervision, LLM-based agents function most effectively when the instructions they are given are straightforward, specific, and unambiguous. Care must be taken to break up their given tasks and deconstruct them into smaller modular chunks.
+
 ## AI Instruction Modules
 The instruction modules files define how everyone, in all roles, behave and perform their work in general. Instructions found in your role definition explain what you are expected to do specifically in your type of role.
 
