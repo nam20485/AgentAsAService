@@ -25,7 +25,7 @@ Repeat this process until the changes are successful and original request has be
 (They are not references.)
 The links below are part of a modular instruction system.
 Each instruction module file contains additional instructions focussed on the topic specified by its title.
-Any file linked below should be read in fully and considered a part of the complete instruction set.
+Any (uncommented) file linked below should be read in fully and considered a part of the complete instruction set.
 
 [ai-quick-reference.md](../ai_instruction_modules/ai-quick-reference.md)
 [ai-terminal-management.md](../ai_instruction_modules/ai-terminal-management.md)
@@ -35,6 +35,7 @@ Any file linked below should be read in fully and considered a part of the compl
 [ai-testing-validation.md](../ai_instruction_modules/ai-testing-validation.md)
 [ai-tools-config.md](../ai_instruction_modules/ai-tools-config.md)
 [ai-current-task.md](../ai_instruction_modules/ai-current-task.md)
+[ai-workflow-roles.md](../ai_instruction_modules/ai-workflow-roles.md)
 <!--
 [ai-retrospective-evolving-memory.md](../ai_instruction_modules/ai-retrospective-evolving-memory.md)
 [ai-deployment-process.md](/ai_instruction_modules/ai-deployment-process.md)
