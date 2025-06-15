@@ -15,8 +15,8 @@ Specific tools already installed include:
 
  You can also create and install into your config new MCP Servers created out of:
 
-- any CLI executable (e.g. bash, pwsh, cmd.exe, powershell)
-- any npm package
+* any CLI executable (e.g. bash, pwsh, cmd.exe, powershell)
+* any npm package
 
 In powershell you can also create ps1 scripts and run them. You can also create and run batch files. You can also run python and node scripts.
 
