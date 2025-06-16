@@ -45,7 +45,8 @@ Then create your plan using this formula:
 
 Your plan will be created by creating high level issues that serve as "epics." These are the main components that your project can be broken up into. You will assign each issue epics to a team members. Then ask them to break the epic up in to stories to achieve the epic. Once they have created the initial epics you will ask for review of the epic sub-issues from yourself, the team member assigned to the epic, and the rest of team members. You all will iterate improving the epic and sub-issues until a consensus is reached, at which point you will make the epic issue with an approved label.
 
-Once all epics have been finished. The next stage, implementation can begin.
+Once all epics have been finished the next stage, implementation, can begin.  
+
 
 ## Implementation Stage
 
