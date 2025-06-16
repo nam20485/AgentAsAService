@@ -1,0 +1,438 @@
+@page "/projects/{ProjectId}/agents/{AgentId}"
+@using System.Net.Http
+@using System.Text.Json
+@using SharedLib.Model
+@inject HttpClient Http
+@inject NavigationManager Navigation
+
+<PageTitle>Agent Details - Agent as a Service</PageTitle>
+
+<div class="container-fluid">
+    @if (agent == null || project == null)
+    {
+        <div class="text-center">
+            <div class="spinner-border" role="status">
+                <span class="sr-only">Loading...</span>
+            </div>
+            <p class="mt-2">Loading agent details...</p>
+        </div>
+    }
+    else
+    {
+        <div class="row mb-4">
+            <div class="col-12">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="/projects">Projects</a></li>
+                        <li class="breadcrumb-item"><a href="/projects/@ProjectId">@project.Name</a></li>
+                        <li class="breadcrumb-item"><a href="/projects/@ProjectId/team">@project.Team.Name</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">@agent.Name</li>
+                    </ol>
+                </nav>
+                <h1>🤖 @agent.Name</h1>
+                <p class="text-muted">Agent details for project: <strong>@project.Name</strong></p>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">🔍 Agent Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <dl class="row">
+                            <dt class="col-sm-3">Agent ID:</dt>
+                            <dd class="col-sm-9"><code>@agent.Id</code></dd>
+                            
+                            <dt class="col-sm-3">Name:</dt>
+                            <dd class="col-sm-9"><strong>@agent.Name</strong></dd>
+                            
+                            <dt class="col-sm-3">Type:</dt>
+                            <dd class="col-sm-9"><span class="badge bg-secondary">Collaborator</span></dd>
+                            
+                            <dt class="col-sm-3">Status:</dt>
+                            <dd class="col-sm-9"><span class="badge bg-success">Active</span></dd>
+                            
+                            <dt class="col-sm-3">Created:</dt>
+                            <dd class="col-sm-9">@agent.CreatedAt.ToString("MMMM dd, yyyy 'at' HH:mm")</dd>
+                            
+                            <dt class="col-sm-3">Project:</dt>
+                            <dd class="col-sm-9">
+                                <a href="/projects/@ProjectId" class="text-decoration-none">
+                                    📁 @project.Name
+                                </a>
+                            </dd>
+                            
+                            <dt class="col-sm-3">Team:</dt>
+                            <dd class="col-sm-9">
+                                <a href="/projects/@ProjectId/team" class="text-decoration-none">
+                                    👥 @project.Team.Name
+                                </a>
+                            </dd>
+                        </dl>
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">📈 Agent Activity</h5>
+                    </div>
+                    <div class="card-body">
+                        @if (agentSessions == null)
+                        {
+                            <div class="text-center">
+                                <div class="spinner-border spinner-border-sm" role="status">
+                                    <span class="sr-only">Loading...</span>
+                                </div>
+                                <p class="mt-2 small">Loading activity...</p>
+                            </div>
+                        }
+                        else if (agentSessions.Count == 0)
+                        {
+                            <div class="text-center text-muted py-3">
+                                <i class="fas fa-history fa-2x mb-2"></i>
+                                <p>No activity recorded for this agent yet.</p>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Session ID</th>
+                                            <th>Started</th>
+                                            <th>Duration</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>                                    <tbody>
+                                        @foreach (var session in agentSessions.Take(5))
+                                        {
+                                            <tr>
+                                                <td><code>@session.Id.Substring(0, 8)...</code></td>
+                                                <td>@session.CreatedAt.ToString("MMM dd HH:mm")</td>
+                                                <td>
+                                                    @if (session.Status == "Completed" || session.Status == "Failed")
+                                                    {
+                                                        var duration = session.UpdatedAt - session.CreatedAt;
+                                                        <span>@duration.TotalMinutes.ToString("F1") min</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        var duration = DateTime.UtcNow - session.CreatedAt;
+                                                        <span class="text-success">@duration.TotalMinutes.ToString("F1") min (running)</span>
+                                                    }
+                                                </td>
+                                                <td>
+                                                    @if (session.Status == "Completed")
+                                                    {
+                                                        <span class="badge bg-success">Completed</span>
+                                                    }
+                                                    else if (session.Status == "Failed")
+                                                    {
+                                                        <span class="badge bg-danger">Failed</span>
+                                                    }
+                                                    else if (session.Status == "Active")
+                                                    {
+                                                        <span class="badge bg-primary">Running</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="badge bg-secondary">@session.Status</span>
+                                                    }
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">⚡ Agent Actions</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-success" @onclick="StartAgent" disabled="@isStartingAgent">
+                                @if (isStartingAgent)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-2"></span>
+                                }
+                                <i class="fas fa-play"></i> Start Agent
+                            </button>
+                            <button class="btn btn-warning" @onclick="StopAgent" disabled="@isStoppingAgent">
+                                @if (isStoppingAgent)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-2"></span>
+                                }
+                                <i class="fas fa-stop"></i> Stop Agent
+                            </button>
+                            <button class="btn btn-info" @onclick="RestartAgent" disabled="@isRestartingAgent">
+                                @if (isRestartingAgent)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-2"></span>
+                                }
+                                <i class="fas fa-redo"></i> Restart Agent
+                            </button>
+                            <hr>
+                            <button class="btn btn-danger" @onclick="RemoveAgent" disabled="@isRemovingAgent">
+                                @if (isRemovingAgent)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-2"></span>
+                                }
+                                <i class="fas fa-trash"></i> Remove Agent
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">🔗 Navigation</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <a href="/projects/@ProjectId/team" class="btn btn-outline-primary">
+                                <i class="fas fa-users"></i> Back to Team
+                            </a>
+                            <a href="/projects/@ProjectId" class="btn btn-outline-secondary">
+                                <i class="fas fa-folder"></i> Back to Project
+                            </a>
+                            <a href="/projects" class="btn btn-outline-info">
+                                <i class="fas fa-list"></i> All Projects
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                @if (!string.IsNullOrEmpty(actionMessage))
+                {
+                    <div class="alert @(actionSuccess ? "alert-success" : "alert-danger")" role="alert">
+                        @actionMessage
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public string ProjectId { get; set; } = "";
+    [Parameter] public string AgentId { get; set; } = "";
+    
+    private SharedLib.Model.Project? project;
+    private SharedLib.Model.Collaborator? agent;
+    private List<SharedLib.Model.AgentSession>? agentSessions;
+    
+    private bool isStartingAgent = false;
+    private bool isStoppingAgent = false;
+    private bool isRestartingAgent = false;
+    private bool isRemovingAgent = false;
+    private string actionMessage = "";
+    private bool actionSuccess = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadProjectAndAgent();
+        await LoadAgentSessions();
+    }
+
+    private async Task LoadProjectAndAgent()
+    {
+        try
+        {
+            // Load project data
+            var projectResponse = await Http.GetStringAsync($"/api/projects/{ProjectId}");
+            project = JsonSerializer.Deserialize<SharedLib.Model.Project>(projectResponse, new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            });
+
+            // Find the agent in the team
+            agent = project?.Team.Members.FirstOrDefault(m => m.Id == AgentId);
+            
+            if (agent == null)
+            {
+                actionMessage = "Agent not found in the project team.";
+                actionSuccess = false;
+            }
+        }
+        catch (Exception ex)
+        {
+            actionMessage = $"Failed to load project and agent data: {ex.Message}";
+            actionSuccess = false;
+        }
+    }    private Task LoadAgentSessions()
+    {
+        try
+        {
+            // This would call an endpoint to get agent sessions
+            // For now, we'll simulate with empty data
+            agentSessions = new List<SharedLib.Model.AgentSession>();
+            
+            // In a real implementation:
+            // var response = await Http.GetStringAsync($"/api/agents/{AgentId}/sessions");
+            // agentSessions = JsonSerializer.Deserialize<List<SharedLib.Model.AgentSession>>(response, ...);
+        }
+        catch (Exception)
+        {
+            agentSessions = new List<SharedLib.Model.AgentSession>();
+            // Don't show error for sessions as it's not critical
+        }
+        return Task.CompletedTask;
+    }
+
+    private async Task StartAgent()
+    {
+        isStartingAgent = true;
+        actionMessage = "";
+        StateHasChanged();
+
+        try
+        {
+            var response = await Http.PostAsync($"/api/team/projects/{ProjectId}/agents/{AgentId}/start", null);
+            if (response.IsSuccessStatusCode)
+            {
+                actionMessage = "Agent started successfully!";
+                actionSuccess = true;
+                await LoadAgentSessions(); // Refresh sessions
+            }
+            else
+            {
+                var responseContent = await response.Content.ReadAsStringAsync();
+                actionMessage = $"Failed to start agent: {responseContent}";
+                actionSuccess = false;
+            }
+        }
+        catch (Exception ex)
+        {
+            actionMessage = $"Error starting agent: {ex.Message}";
+            actionSuccess = false;
+        }
+        finally
+        {
+            isStartingAgent = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task StopAgent()
+    {
+        isStoppingAgent = true;
+        actionMessage = "";
+        StateHasChanged();
+
+        try
+        {
+            var response = await Http.PostAsync($"/api/team/projects/{ProjectId}/agents/{AgentId}/stop", null);
+            if (response.IsSuccessStatusCode)
+            {
+                actionMessage = "Agent stopped successfully!";
+                actionSuccess = true;
+                await LoadAgentSessions(); // Refresh sessions
+            }
+            else
+            {
+                var responseContent = await response.Content.ReadAsStringAsync();
+                actionMessage = $"Failed to stop agent: {responseContent}";
+                actionSuccess = false;
+            }
+        }
+        catch (Exception ex)
+        {
+            actionMessage = $"Error stopping agent: {ex.Message}";
+            actionSuccess = false;
+        }
+        finally
+        {
+            isStoppingAgent = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task RestartAgent()
+    {
+        isRestartingAgent = true;
+        actionMessage = "";
+        StateHasChanged();
+
+        try
+        {
+            // Stop then start
+            await Http.PostAsync($"/api/team/projects/{ProjectId}/agents/{AgentId}/stop", null);
+            await Task.Delay(1000); // Brief pause
+            var response = await Http.PostAsync($"/api/team/projects/{ProjectId}/agents/{AgentId}/start", null);
+            
+            if (response.IsSuccessStatusCode)
+            {
+                actionMessage = "Agent restarted successfully!";
+                actionSuccess = true;
+                await LoadAgentSessions(); // Refresh sessions
+            }
+            else
+            {
+                var responseContent = await response.Content.ReadAsStringAsync();
+                actionMessage = $"Failed to restart agent: {responseContent}";
+                actionSuccess = false;
+            }
+        }
+        catch (Exception ex)
+        {
+            actionMessage = $"Error restarting agent: {ex.Message}";
+            actionSuccess = false;
+        }
+        finally
+        {
+            isRestartingAgent = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task RemoveAgent()
+    {
+        if (!await ConfirmRemove()) return;
+
+        isRemovingAgent = true;
+        actionMessage = "";
+        StateHasChanged();
+
+        try
+        {
+            var response = await Http.DeleteAsync($"/api/team/projects/{ProjectId}/agents/{AgentId}");
+            if (response.IsSuccessStatusCode)
+            {
+                actionMessage = "Agent removed successfully! Redirecting...";
+                actionSuccess = true;
+                StateHasChanged();
+                await Task.Delay(2000);
+                Navigation.NavigateTo($"/projects/{ProjectId}/team");
+            }
+            else
+            {
+                var responseContent = await response.Content.ReadAsStringAsync();
+                actionMessage = $"Failed to remove agent: {responseContent}";
+                actionSuccess = false;
+            }
+        }
+        catch (Exception ex)
+        {
+            actionMessage = $"Error removing agent: {ex.Message}";
+            actionSuccess = false;
+        }
+        finally
+        {
+            isRemovingAgent = false;
+            StateHasChanged();
+        }
+    }    private async Task<bool> ConfirmRemove()
+    {
+        // In a real application, you'd use a proper modal dialog
+        return await Task.FromResult(true); // Simplified for this implementation
+    }
+}

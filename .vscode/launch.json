@@ -1,0 +1,276 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": ".NET: http",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/AgentService/bin/Debug/net9.0/AgentService.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/AgentService",
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development"
+            },
+            //"envFile": "${workspaceFolder}/AgentService/.env",
+            "launchBrowser": {
+                "enabled": true,
+                "args": "http://localhost:5211/swagger"
+            },
+            // "dotnetRunMessages": true,
+            // "applicationUrl": "http://localhost:5211"
+        },
+        {
+            "name": ".NET: https",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/AgentService/bin/Debug/net9.0/AgentService.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/AgentService",
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development"
+            },
+            //"envFile": "${workspaceFolder}/AgentService/.env",
+            "launchBrowser": {
+                "enabled": true,
+                "args": "https://localhost:7164/swagger"
+            },
+            // "dotnetRunMessages": true,
+            // "applicationUrl": "https://localhost:7164;http://localhost:5211"
+        },
+        {
+            "name": ".NET: IIS Express",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/AgentService/bin/Debug/net9.0/AgentService.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/AgentService",
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development"
+            },
+            //"envFile": "${workspaceFolder}/AgentService/.env",
+            "launchBrowser": {
+                "enabled": true,
+                "args": "http://localhost:35207/swagger"
+            },
+            // "dotnetRunMessages": true,
+            // "applicationUrl": "http://localhost:35207"
+        },
+        {
+            "name": ".NET: WSL",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/AgentService/bin/Debug/net9.0/AgentService.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/AgentService",
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development",
+                "ASPNETCORE_URLS": "https://localhost:7164;http://localhost:5211"
+            },
+            //"envFile": "${workspaceFolder}/AgentService/.env",
+            "launchBrowser": {
+                "enabled": true,
+                "args": "https://localhost:7164/swagger"
+            },
+            // "dotnetRunMessages": true,
+            // "applicationUrl": "https://localhost:7164;http://localhost:5211"
+        },
+        {
+            "name": "OrchestratorService: http",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/OrchestratorService/bin/Debug/net9.0/OrchestratorService.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/OrchestratorService",
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development"
+            },
+            //"envFile": "${workspaceFolder}/OrchestratorService/.env",
+            "launchBrowser": {
+                "enabled": true,
+                "args": "http://localhost:5215/swagger"
+            }
+        },
+        {
+            "name": "OrchestratorService: https",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/OrchestratorService/bin/Debug/net9.0/OrchestratorService.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/OrchestratorService",
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development",
+                "ASPNETCORE_URLS": "https://localhost:7235;http://localhost:5215"
+            },
+            //"envFile": "${workspaceFolder}/OrchestratorService/.env",
+            "launchBrowser": {
+                "enabled": true,
+                "args": "https://localhost:7235/swagger"
+            }
+        },
+        {
+            "name": "OrchestratorService: IIS Express",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/OrchestratorService/bin/Debug/net9.0/OrchestratorService.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/OrchestratorService",
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development"
+            },
+            //"envFile": "${workspaceFolder}/OrchestratorService/.env",
+            "launchBrowser": {
+                "enabled": true,
+                "args": "http://localhost:11235/swagger"
+            }
+        },
+        {
+            "name": "OrchestratorService: WSL",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/OrchestratorService/bin/Debug/net9.0/OrchestratorService.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/OrchestratorService",
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development",
+                "ASPNETCORE_URLS": "https://localhost:7235;http://localhost:5215"
+            },
+            //"envFile": "${workspaceFolder}/OrchestratorService/.env",
+            "launchBrowser": {
+                "enabled": true,
+                "args": "https://localhost:7235/swagger"
+            }        },
+        {
+            "name": "Docker: OrchestratorService",
+            "type": "docker",
+            "request": "launch",
+            "preLaunchTask": "docker-build: orchestratorservice",
+            "netCore": {
+                "appProject": "${workspaceFolder}/OrchestratorService/OrchestratorService.csproj"
+            }
+        },
+        {
+            "name": "Docker Compose: OrchestratorService (Debug)",
+            "type": "docker",
+            "request": "launch",
+            "preLaunchTask": "docker-compose: up orchestratorservice debug",
+            "netCore": {
+                "appProject": "${workspaceFolder}/OrchestratorService/OrchestratorService.csproj",
+                "enableDebugging": true,
+                "dockerComposeFile": "${workspaceFolder}/docker-compose.yml",
+                "dockerComposeService": "orchestratorservice"
+            }
+        },
+        {
+            "name": "Docker Compose: All Services (Debug)", 
+            "type": "docker",
+            "request": "launch", 
+            "preLaunchTask": "docker-compose: up all debug",
+            "netCore": {
+                "appProject": "${workspaceFolder}/OrchestratorService/OrchestratorService.csproj",
+                "enableDebugging": true,
+                "dockerComposeFile": "${workspaceFolder}/docker-compose.yml",
+                "dockerComposeService": "orchestratorservice"
+            }
+        },
+        {
+            "name": "OrchestratorService: https (no .env)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/OrchestratorService/bin/Debug/net9.0/OrchestratorService.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/OrchestratorService",
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development",
+                "ASPNETCORE_URLS": "https://localhost:7235;http://localhost:5215"
+            },
+            "launchBrowser": {
+                "enabled": true,
+                "args": "https://localhost:7235/swagger"
+            }
+        },
+        {
+            "name": "🚀 Launch AgentAsAService (Full Stack)",
+            "type": "coreclr", 
+            "request": "launch",
+            "preLaunchTask": "Run Startup Script",
+            "program": "${workspaceFolder}/OrchestratorService/bin/Debug/net9.0/OrchestratorService.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/OrchestratorService",
+            "console": "integratedTerminal",
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development"
+            },
+            "launchBrowser": {
+                "enabled": true,
+                "args": "http://localhost:5264"
+            },
+            "presentation": {
+                "hidden": false,
+                "group": "AgentAsAService",
+                "order": 1
+            }
+        },
+        {
+            "name": "🔧 Debug OrchestratorService Only",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "Create local-storage directory",
+            "program": "${workspaceFolder}/OrchestratorService/bin/Debug/net9.0/OrchestratorService.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/OrchestratorService", 
+            "console": "integratedTerminal",
+            "stopAtEntry": false,
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development"
+            },
+            "launchBrowser": {
+                "enabled": true,
+                "args": "http://localhost:8080/swagger"
+            },
+            "presentation": {
+                "hidden": false,
+                "group": "Debug Individual",
+                "order": 1
+            }
+        },
+        {
+            "name": "🌐 Debug OrchestratorWebApp Only", 
+            "type": "blazorwasm",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/OrchestratorWebApp",
+            "url": "http://localhost:5264",
+            "presentation": {
+                "hidden": false,
+                "group": "Debug Individual", 
+                "order": 2
+            }
+        }
+    ],
+    "compounds": [
+        {
+            "name": "🚀 Debug Full Stack (Manual)",
+            "configurations": [
+                "🔧 Debug OrchestratorService Only",
+                "🌐 Debug OrchestratorWebApp Only"
+            ],
+            "stopAll": true,
+            "presentation": {
+                "hidden": false,
+                "group": "Debug Compound",
+                "order": 1
+            }
+        }
+    ]
+}

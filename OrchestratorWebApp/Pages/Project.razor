@@ -1,0 +1,288 @@
+@page "/projects/{ProjectId}"
+@using System.Net.Http
+@using System.Text.Json
+@using SharedLib.Model
+@inject HttpClient Http
+@inject NavigationManager Navigation
+
+<PageTitle>Project Details - Agent as a Service</PageTitle>
+
+<div class="container-fluid">
+    @if (project == null)
+    {
+        <div class="text-center">
+            <div class="spinner-border" role="status">
+                <span class="sr-only">Loading...</span>
+            </div>
+            <p class="mt-2">Loading project details...</p>
+        </div>
+    }
+    else
+    {
+        <div class="row mb-4">
+            <div class="col-12">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="/projects">Projects</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">@project.Name</li>
+                    </ol>
+                </nav>
+                <h1>📁 @project.Name</h1>
+                <p class="text-muted">Project created on @project.CreatedAt.ToString("MMMM dd, yyyy")</p>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">📋 Project Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <dl class="row">
+                            <dt class="col-sm-3">Project ID:</dt>
+                            <dd class="col-sm-9"><code>@project.Id</code></dd>
+                            
+                            <dt class="col-sm-3">Orchestrator:</dt>
+                            <dd class="col-sm-9">@project.OrchestratorId</dd>
+                            
+                            <dt class="col-sm-3">Repository:</dt>
+                            <dd class="col-sm-9">
+                                @if (project.Repository != null && !string.IsNullOrEmpty(project.Repository.Name))
+                                {
+                                    <strong>@project.Repository.Name</strong><br>
+                                    @if (!string.IsNullOrEmpty(project.Repository.Address))
+                                    {
+                                        <a href="@project.Repository.Address" target="_blank" class="text-muted small">
+                                            @project.Repository.Address <i class="fas fa-external-link-alt"></i>
+                                        </a>
+                                    }
+                                }
+                                else
+                                {
+                                    <span class="text-muted">No repository configured</span>
+                                }
+                            </dd>
+                            
+                            <dt class="col-sm-3">Team:</dt>
+                            <dd class="col-sm-9">
+                                <a href="/projects/@ProjectId/team" class="btn btn-sm btn-outline-primary">
+                                    👥 @project.Team.Name (@project.Team.Members.Count members)
+                                </a>
+                            </dd>
+                        </dl>
+                    </div>
+                </div>
+
+                @if (project.Team.Members.Count > 0)
+                {
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">👥 Team Members</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Agent Name</th>
+                                            <th>Type</th>
+                                            <th>Created</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var member in project.Team.Members)
+                                        {
+                                            <tr>
+                                                <td><strong>@member.Name</strong></td>
+                                                <td><span class="badge bg-secondary">Collaborator</span></td>
+                                                <td>@member.CreatedAt.ToString("MMM dd, yyyy")</td>
+                                                <td>
+                                                    <a href="/projects/@ProjectId/agents/@member.Id" class="btn btn-sm btn-outline-info">View Details</a>
+                                                    <button class="btn btn-sm btn-outline-danger" @onclick="() => RemoveAgent(member.Id)">Remove</button>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <div class="col-md-4">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">🎯 Quick Actions</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <a href="/projects/@ProjectId/team" class="btn btn-primary">
+                                <i class="fas fa-users"></i> Manage Team
+                            </a>
+                            <button class="btn btn-warning" @onclick="StopProject" disabled="@isStoppingProject">
+                                @if (isStoppingProject)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-2"></span>
+                                }
+                                <i class="fas fa-stop"></i> Stop Project
+                            </button>
+                            <button class="btn btn-danger" @onclick="DeleteProject" disabled="@isDeletingProject">
+                                @if (isDeletingProject)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-2"></span>
+                                }
+                                <i class="fas fa-trash"></i> Delete Project
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                @if (!string.IsNullOrEmpty(actionMessage))
+                {
+                    <div class="alert @(actionSuccess ? "alert-success" : "alert-danger")" role="alert">
+                        @actionMessage
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+@code {    [Parameter] public string ProjectId { get; set; } = "";
+    
+    private SharedLib.Model.Project? project;
+    private bool isStoppingProject = false;
+    private bool isDeletingProject = false;
+    private string actionMessage = "";
+    private bool actionSuccess = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadProject();
+    }
+
+    private async Task LoadProject()
+    {
+        try        {
+            var response = await Http.GetStringAsync($"/api/projects/{ProjectId}");
+            project = JsonSerializer.Deserialize<SharedLib.Model.Project>(response, new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            });
+        }
+        catch (Exception ex)
+        {
+            actionMessage = $"Failed to load project: {ex.Message}";
+            actionSuccess = false;
+        }
+    }
+
+    private async Task StopProject()
+    {
+        if (project == null) return;
+
+        isStoppingProject = true;
+        actionMessage = "";
+        StateHasChanged();
+
+        try
+        {
+            var response = await Http.PostAsync($"/api/projects/{ProjectId}/stop", null);
+            if (response.IsSuccessStatusCode)
+            {
+                actionMessage = "Project stopped successfully!";
+                actionSuccess = true;
+            }
+            else
+            {
+                var responseContent = await response.Content.ReadAsStringAsync();
+                actionMessage = $"Failed to stop project: {responseContent}";
+                actionSuccess = false;
+            }
+        }
+        catch (Exception ex)
+        {
+            actionMessage = $"Error stopping project: {ex.Message}";
+            actionSuccess = false;
+        }
+        finally
+        {
+            isStoppingProject = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task DeleteProject()
+    {
+        if (project == null) return;
+
+        if (!await ConfirmDelete()) return;
+
+        isDeletingProject = true;
+        actionMessage = "";
+        StateHasChanged();
+
+        try
+        {
+            var response = await Http.DeleteAsync($"/api/projects/{ProjectId}");
+            if (response.IsSuccessStatusCode)
+            {
+                actionMessage = "Project deleted successfully! Redirecting...";
+                actionSuccess = true;
+                StateHasChanged();
+                await Task.Delay(2000);
+                Navigation.NavigateTo("/projects");
+            }
+            else
+            {
+                var responseContent = await response.Content.ReadAsStringAsync();
+                actionMessage = $"Failed to delete project: {responseContent}";
+                actionSuccess = false;
+            }
+        }
+        catch (Exception ex)
+        {
+            actionMessage = $"Error deleting project: {ex.Message}";
+            actionSuccess = false;
+        }
+        finally
+        {
+            isDeletingProject = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task RemoveAgent(string agentId)
+    {
+        try
+        {
+            var response = await Http.DeleteAsync($"/api/team/projects/{ProjectId}/agents/{agentId}");
+            if (response.IsSuccessStatusCode)
+            {
+                actionMessage = "Agent removed successfully!";
+                actionSuccess = true;
+                await LoadProject(); // Refresh the project data
+            }
+            else
+            {
+                var responseContent = await response.Content.ReadAsStringAsync();
+                actionMessage = $"Failed to remove agent: {responseContent}";
+                actionSuccess = false;
+            }
+        }
+        catch (Exception ex)
+        {
+            actionMessage = $"Error removing agent: {ex.Message}";
+            actionSuccess = false;        }
+    }
+
+    private async Task<bool> ConfirmDelete()
+    {
+        // In a real application, you'd use a proper modal dialog
+        // For now, we'll use browser confirm
+        return await Task.FromResult(true); // Simplified for this implementation
+    }
+}

@@ -1,7 +1,60 @@
 ﻿@page "/"
 
-<PageTitle>Home</PageTitle>
+<PageTitle>Agent as a Service</PageTitle>
 
-<h1>Hello, world!</h1>
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="jumbotron bg-primary text-white p-4 rounded">
+                <h1 class="display-4">🤖 Agent as a Service</h1>
+                <p class="lead">Multi-agent runtime environment for collaborative development</p>
+                <hr class="my-4 border-light">
+                <p>Agents run in parallel in a Kubernetes cluster to operate on shared Git repositories.</p>
+                <a class="btn btn-light btn-lg" href="/api-test" role="button">Test API Connectivity</a>
+            </div>
+        </div>
+    </div>
 
-Welcome to your new app.
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">🔧 API Testing</h5>
+                    <p class="card-text">Test connectivity to the OrchestratorService and verify all endpoints are working properly.</p>
+                    <a href="/api-test" class="btn btn-primary">Run API Tests</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">🎯 Project Management</h5>
+                    <p class="card-text">Create and manage projects with orchestrators and agent teams.</p>
+                    <a href="/projects" class="btn btn-secondary">Manage Projects</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">📊 System Status</h5>
+                    <p class="card-text">Monitor system health, view logs, and check service status.</p>
+                    <a href="/status" class="btn btn-info">Check Status</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="alert alert-info" role="alert">
+                <h4 class="alert-heading">Development Mode</h4>
+                <p>You're running in development mode with authentication bypass enabled. The system is configured to use LiteDB for local storage.</p>
+                <hr>
+                <p class="mb-0">API Base URL: <strong>http://localhost:8080</strong> | Web App: <strong>http://localhost:5264</strong></p>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,6 +1,6 @@
 [
   {
-    "Name": "Https w/o Debugging",
+    "Name": "Https + Web w/o Debugging",
     "Projects": [
       {
         "Path": "AgentService\\AgentService.csproj",
@@ -20,7 +20,7 @@
     ]
   },
   {
-    "Name": "WSL w/o Debugging",
+    "Name": "WSL + Web w/o Debugging",
     "Projects": [
       {
         "Path": "AgentService\\AgentService.csproj",
@@ -40,7 +40,7 @@
     ]
   },
   {
-    "Name": "Https - Debugging",
+    "Name": "Https + Web - Debugging",
     "Projects": [
       {
         "Path": "AgentService\\AgentService.csproj",
@@ -60,7 +60,7 @@
     ]
   },
   {
-    "Name": "WSL - Debugging",
+    "Name": "WSL + Web - Debugging",
     "Projects": [
       {
         "Path": "AgentService\\AgentService.csproj",
@@ -75,6 +75,66 @@
       {
         "Path": "OrchestratorWebApp\\OrchestratorWebApp.csproj",
         "Action": "Start",
+        "DebugTarget": "WSL"
+      }
+    ]
+  },
+  {
+    "Name": "Https + Desktop (w/o Debugging)",
+    "Projects": [
+      {
+        "Path": "AgentService\\AgentService.csproj",
+        "Action": "StartWithoutDebugging",
+        "DebugTarget": "https"
+      },
+      {
+        "Path": "OrchestratorService\\OrchestratorService.csproj",
+        "Action": "StartWithoutDebugging",
+        "DebugTarget": "https"
+      },
+      {
+        "Path": "DesktopClient\\DesktopClient.csproj",
+        "Action": "StartWithoutDebugging",
+        "DebugTarget": "DesktopClient"
+      }
+    ]
+  },
+  {
+    "Name": "Https + WSL Desktop (w/o Debugging) (1)",
+    "Projects": [
+      {
+        "Path": "AgentService\\AgentService.csproj",
+        "Action": "StartWithoutDebugging",
+        "DebugTarget": "https"
+      },
+      {
+        "Path": "OrchestratorService\\OrchestratorService.csproj",
+        "Action": "StartWithoutDebugging",
+        "DebugTarget": "https"
+      },
+      {
+        "Path": "DesktopClient\\DesktopClient.csproj",
+        "Action": "StartWithoutDebugging",
+        "DebugTarget": "WSL"
+      }
+    ]
+  },
+  {
+    "Name": "WSL + WSL Desktop (w/o Debugging)",
+    "Projects": [
+      {
+        "Path": "AgentService\\AgentService.csproj",
+        "Action": "StartWithoutDebugging",
+        "DebugTarget": "WSL"
+      },
+      {
+        "Path": "OrchestratorService\\OrchestratorService.csproj",
+        "Action": "StartWithoutDebugging",
+        "DebugTarget": "WSL"
+      },
+      {
+        "Path": "DesktopClient\\DesktopClient.csproj",
+        "Action": "StartWithoutDebugging",
         "DebugTarget": "WSL"
       }
     ]

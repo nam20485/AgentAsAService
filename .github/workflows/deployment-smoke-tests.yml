@@ -34,7 +34,7 @@ permissions:
   checks: write
 
 env:
-  DOTNET_VERSION: '9.0.300'
+  DOTNET_VERSION: '9.0.102'
   NODE_VERSION: 'lts/*'
   # Production service URLs
   ORCHESTRATOR_URL: 'https://orchestratorservice-us-west1-agent-as-a-service-459620.run.app'

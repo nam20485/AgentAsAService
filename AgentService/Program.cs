@@ -6,21 +6,54 @@ using Google.Apis.Auth.OAuth2;
 using AgentService.Services;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using SharedLib.Extensions;
 
 internal class Program
 {
+    private const string DEFAULT_LISTEN_PORT = "7001";
+
     private static void Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
-
+        
         // Configure Kestrel to use the PORT environment variable if available
-        var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
-        builder.WebHost.UseUrls($"http://*:{port}");
-
-        // Add services to the container.
+        var port = Environment.GetEnvironmentVariable("PORT") ?? DEFAULT_LISTEN_PORT;
+        builder.WebHost.UseUrls($"http://*:{port}");// Add services to the container.
         builder.Services.AddControllers();
         builder.Services.AddEndpointsApiExplorer();
-        builder.Services.AddSwaggerGen();
+        builder.Services.AddSwaggerGen(c =>
+        {
+            c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo 
+            { 
+                Title = "Agent Service API", 
+                Version = "v1" 
+            });
+            
+            // Add JWT authentication to Swagger
+            c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+            {
+                Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
+                Name = "Authorization",
+                In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+                Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey,
+                Scheme = "Bearer"
+            });
+            
+            c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+            {
+                {
+                    new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+                    {
+                        Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                        {
+                            Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                            Id = "Bearer"
+                        }
+                    },
+                    new string[] {}
+                }
+            });
+        });
         builder.Services.AddHttpContextAccessor();
           // Add health checks
         builder.Services.AddHealthChecks()
@@ -56,7 +89,10 @@ internal class Program
         // Register authentication services
         builder.Services.AddScoped<IServiceAuthenticationService, ServiceAuthenticationService>();
 
-        // Add Google Cloud Firestore
+        // Add document store services for AgentSession management
+        builder.Services.AddDocumentStore(builder.Configuration);
+
+        // Add Google Cloud Firestore (legacy - still needed for health checks)
         builder.Services.AddSingleton(provider =>
         {
             var projectId = builder.Configuration["GoogleCloud:ProjectId"];
@@ -96,12 +132,25 @@ internal class Program
         // Add Authorization policies
         builder.Services.AddAuthorization(options =>
         {
-            options.AddPolicy("RequireServiceAuthentication", policy =>
-                policy.RequireAuthenticatedUser()
-                      .AddAuthenticationSchemes("ServiceToService", "GoogleServiceAccount"));
-            
-            options.AddPolicy("RequireOrchestratorService", policy =>
-                policy.RequireClaim("email", builder.Configuration["AgentService:AllowedServiceEmails"]?.Split(',') ?? Array.Empty<string>()));
+            if (builder.Environment.IsDevelopment())
+            {
+                // In development, allow all requests to bypass authentication for easier testing
+                options.AddPolicy("RequireServiceAuthentication", policy =>
+                    policy.RequireAssertion(_ => true)); // Always allow in development
+                
+                options.AddPolicy("RequireOrchestratorService", policy =>
+                    policy.RequireAssertion(_ => true)); // Always allow in development
+            }
+            else
+            {
+                // Production authentication policies
+                options.AddPolicy("RequireServiceAuthentication", policy =>
+                    policy.RequireAuthenticatedUser()
+                          .AddAuthenticationSchemes("ServiceToService", "GoogleServiceAccount"));
+                
+                options.AddPolicy("RequireOrchestratorService", policy =>
+                    policy.RequireClaim("email", builder.Configuration["AgentService:AllowedServiceEmails"]?.Split(',') ?? Array.Empty<string>()));
+            }
         });
 
         var app = builder.Build();
@@ -120,7 +169,9 @@ internal class Program
         }
 
         app.UseAuthentication();
-        app.UseAuthorization();        // Add health check endpoints
+        app.UseAuthorization();
+
+        // Add health check endpoints
         app.MapHealthChecks("/health", new HealthCheckOptions
         {
             ResponseWriter = async (context, report) =>
@@ -192,33 +243,8 @@ internal class Program
 
         app.MapControllers();
 
-        var firebaseApp = FirebaseApp.Create();
-
-        var summaries = new[]
-        {
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-        app.MapGet("/weatherforecast", () =>
-        {
-            var forecast = Enumerable.Range(1, 5).Select(index =>
-                new WeatherForecast
-                (
-                    DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                    Random.Shared.Next(-20, 55),
-                    summaries[Random.Shared.Next(summaries.Length)]
-                ))
-                .ToArray();
-            return forecast;
-        })
-        .WithName("GetWeatherForecast")
-        .WithOpenApi();
+        var firebaseApp = FirebaseApp.Create();  
 
         app.Run();
     }
-}
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
 }
