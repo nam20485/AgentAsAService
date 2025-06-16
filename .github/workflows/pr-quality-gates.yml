@@ -180,6 +180,8 @@ jobs:
         run: dotnet build AgentAsAService.sln --no-restore --configuration Release
       
       - name: Run unit tests
+        id: test-run
+        continue-on-error: true
         run: |
           dotnet test AgentAsAService.sln \
             --no-build \
@@ -192,6 +194,7 @@ jobs:
       
       - name: Generate code coverage report
         uses: danielpalme/ReportGenerator-GitHub-Action@5.2.0
+        if: always()  # Generate coverage report even if tests failed
         with:
           reports: 'coverage/**/coverage.cobertura.xml'
           targetdir: 'coverage-report'
@@ -199,16 +202,24 @@ jobs:
       
       - name: Upload coverage reports
         uses: actions/upload-artifact@v4
+        if: always()  # Upload reports even if tests failed
         with:
           name: coverage-report
           path: coverage-report/
       
       - name: Comment coverage on PR
         uses: marocchino/sticky-pull-request-comment@v2
-        if: github.event_name == 'pull_request'
+        if: always() && github.event_name == 'pull_request'  # Comment even if tests failed
         with:
           recreate: true
           path: coverage-report/SummaryGithub.md
+      
+      - name: Check test results
+        if: steps.test-run.outcome == 'failure'
+        run: |
+          echo "❌ Unit tests failed! Check the test results above."
+          echo "Coverage reports have been generated for debugging."
+          exit 1
 
   # Job 5: Integration Tests (if applicable)
   integration-tests:
