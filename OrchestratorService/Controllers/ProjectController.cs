@@ -28,23 +28,30 @@ namespace OrchestratorService.Controllers
         {
             try
             {
+                // Create orchestrator using the new store
+                var orchestrator = await _orchestratorStore.CreateAsync(
+                    new CreateOrchestratorRequest
+                    {
+                        Name = request.OrchestratorName
+                    });
+
                 // Create the project entity
                 var project = new Project
                 {
                     Name = request.ProjectName,
-                    OrchestratorId = "", // Will be set after orchestrator creation
+                    OrchestratorId = orchestrator.Id,
                     Repository = new Repository
                     {
                         Name = request.RepositoryName,
                         Address = request.RepositoryAddress
+                    },
+                    Team = new Team
+                    {
+                        Id = Guid.NewGuid().ToString(),
+                        Name = $"{request.ProjectName} Team"
                     }
-                };                // Create orchestrator using the new store
-                var orchestratorRequest = new CreateOrchestratorRequest
-                {
-                    Name = request.OrchestratorName
-                };
-                var orchestrator = await _orchestratorStore.CreateAsync(orchestratorRequest);
-                
+                };           
+                              
                 // Set the orchestrator ID
                 project.OrchestratorId = orchestrator.Id;
                 project.Team.Name = $"{project.Name} Team";
