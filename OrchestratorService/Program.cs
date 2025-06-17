@@ -11,11 +11,18 @@ internal class Program
 {
     private static void Main(string[] args)
     {
-        var builder = WebApplication.CreateBuilder(args);        // Configure Kestrel to use the PORT environment variable if available
+        var builder = WebApplication.CreateBuilder(args);
+        // Configure Kestrel to use the PORT environment variable if available
         // In production (Cloud Run): uses $PORT from container environment
         // In development: uses default port 8080 if PORT not set
-        var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
-        builder.WebHost.UseUrls($"http://*:{port}");
+
+        var environment = Environment.GetEnvironmentVariable("Environment");
+        if (! string.IsNullOrEmpty(environment) && environment?.ToLower() != "development")
+        if (! string.IsNullOrEmpty(environment) && environment?.ToLower() != "development")
+        {
+            var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+            builder.WebHost.UseUrls($"http://*:{port}");
+        }
 
         // Add services to the container.
         builder.Services.AddControllers();
@@ -57,9 +64,20 @@ internal class Program
         // Add HTTP client factory
         builder.Services.AddHttpClient();
 
+        // Configure base URL
+        
+
+
         // Register HTTP client services
-        builder.Services.AddHttpClient<IAgentHttpClientService, AgentHttpClientService>();        // Add document store services (replaces direct Firestore registration)
+        builder.Services.AddHttpClient<IAgentHttpClientService, AgentHttpClientService>(
+            client =>
+            {
+                client.BaseAddress = new Uri(builder.Configuration["AgentService:BaseUrl"]);
+            });       
+        // Add document store services (replaces direct Firestore registration)
         builder.Services.AddDocumentStore(builder.Configuration);
+
+        builder.Services.AddScoped<ITeamService, TeamService>();
 
         // Add Google Cloud Firestore (still needed for direct usage in some controllers)
         builder.Services.AddSingleton(provider =>
@@ -82,7 +100,8 @@ internal class Program
                     ValidateLifetime = true,
                     ClockSkew = TimeSpan.Zero
                 };
-            });        // Add Authorization with environment-specific policies
+            });        
+        // Add Authorization with environment-specific policies
         builder.Services.AddAuthorization(options =>
         {
             if (builder.Environment.IsDevelopment() || builder.Environment.EnvironmentName == "Testing")
