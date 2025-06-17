@@ -26,6 +26,7 @@ internal class Program
 
         // Add services to the container.
         builder.Services.AddControllers();
+        
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen(c =>
         {
@@ -64,15 +65,13 @@ internal class Program
         // Add HTTP client factory
         builder.Services.AddHttpClient();
 
-        // Configure base URL
-        
-
-
         // Register HTTP client services
         builder.Services.AddHttpClient<IAgentHttpClientService, AgentHttpClientService>(
             client =>
             {
-                client.BaseAddress = new Uri(builder.Configuration["AgentService:BaseUrl"]);
+                // Configure base URL
+                var url = builder.Configuration["AgentService:BaseUrl"];
+                client.BaseAddress = new Uri(url);
             });       
         // Add document store services (replaces direct Firestore registration)
         builder.Services.AddDocumentStore(builder.Configuration);

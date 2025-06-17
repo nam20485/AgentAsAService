@@ -41,13 +41,6 @@ public class AgentHttpClientService : IAgentHttpClientService
         _httpClient = httpClient;
         _logger = logger;
         _configuration = configuration;
-
-        // Configure base URL
-        var baseUrl = _configuration["AgentService:BaseUrl"];
-        if (!string.IsNullOrEmpty(baseUrl))
-        {
-            _httpClient.BaseAddress = new Uri(baseUrl);
-        }
     }
 
     /// <summary>
