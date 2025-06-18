@@ -1,0 +1,84 @@
+{
+  "servers": {
+    "sequential-thinking": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-sequential-thinking"
+      ]
+    },
+    "sequential_thinking": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-sequential-thinking"
+      ]
+    },
+    "memory": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-memory"
+      ]
+    },
+    "filesystem": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "C:\\Users\\nmill"
+      ]
+    },
+    "powershell": {
+      "type": "stdio",
+      "command": "pwsh.exe",
+      "args": [
+        "-NoLogo",
+        "-NoProfile",
+        "-Command",
+        "-"
+      ],
+      "env": {}
+    },
+    "github": {
+      "type": "stdio",
+      "command": "gh",
+      "args": [],
+      "env": {}
+    },
+    "gcloud": {
+      "type": "stdio",
+      "command": "gcloud",
+      "args": [],
+      "env": {}
+    },
+    "firebase": {
+      "type": "stdio",
+      "command": "firebase",
+      "args": [],
+      "env": {}
+    },
+    "git": {
+      "type": "stdio",
+      "command": "git.exe",
+      "args": [],
+      "env": {}
+    },
+    "dotnet": {
+      "type": "stdio",
+      "command": "dotnet",
+      "args": [],
+      "env": {}
+    },
+    "docker": {
+      "type": "stdio",
+      "command": "docker",
+      "args": [],
+      "env": {}
+    }
+  }
+}

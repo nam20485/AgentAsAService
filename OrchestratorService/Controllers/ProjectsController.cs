@@ -9,13 +9,13 @@ namespace OrchestratorService.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ProjectController : ControllerBase
+    public class ProjectsController : ControllerBase
     {
         private readonly IProjectStore _projectStore;
         private readonly IOrchestratorStore _orchestratorStore;
-        private readonly ILogger<ProjectController> _logger;
+        private readonly ILogger<ProjectsController> _logger;
 
-        public ProjectController(IProjectStore projectStore, IOrchestratorStore orchestratorStore, ILogger<ProjectController> logger)
+        public ProjectsController(IProjectStore projectStore, IOrchestratorStore orchestratorStore, ILogger<ProjectsController> logger)
         {
             _projectStore = projectStore;
             _orchestratorStore = orchestratorStore;

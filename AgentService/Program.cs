@@ -19,6 +19,7 @@ internal class Program
         // Configure Kestrel to use the PORT environment variable if available
         var port = Environment.GetEnvironmentVariable("PORT") ?? DEFAULT_LISTEN_PORT;
         builder.WebHost.UseUrls($"http://*:{port}");// Add services to the container.
+
         builder.Services.AddControllers();
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen(c =>

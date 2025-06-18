@@ -12,12 +12,11 @@ internal class Program
     private static void Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
+        
         // Configure Kestrel to use the PORT environment variable if available
         // In production (Cloud Run): uses $PORT from container environment
-        // In development: uses default port 8080 if PORT not set
-
+        // In development: uses port from appsettings.json or standard env vars, etc. if $PORT not set
         var environment = Environment.GetEnvironmentVariable("Environment");
-        if (! string.IsNullOrEmpty(environment) && environment?.ToLower() != "development")
         if (! string.IsNullOrEmpty(environment) && environment?.ToLower() != "development")
         {
             var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
@@ -151,7 +150,8 @@ internal class Program
                       .AllowAnyHeader()
                       .AllowCredentials();
             });
-        });        // Add health checks
+        });   
+        // Add health checks
         builder.Services.AddHealthChecks()
             .AddCheck("self", () => HealthCheckResult.Healthy("OrchestratorService is running"), tags: new[] { "ready", "live" })
             .AddCheck("firestore", () =>
