@@ -150,7 +150,8 @@ internal class Program
                       .AllowAnyHeader()
                       .AllowCredentials();
             });
-        });        // Add health checks
+        });   
+        // Add health checks
         builder.Services.AddHealthChecks()
             .AddCheck("self", () => HealthCheckResult.Healthy("OrchestratorService is running"), tags: new[] { "ready", "live" })
             .AddCheck("firestore", () =>
