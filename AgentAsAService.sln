@@ -12,7 +12,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharedLib", "SharedLib\Shar
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DesktopClient", "DesktopClient\DesktopClient.csproj", "{487817BE-5407-4B4E-AEAD-69A5C7929D3C}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ai_instruciotns_modules", "ai_instruciotns_modules", "{B7086302-1D0A-D58E-FE97-DE1108A1BF0C}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ai_instructions_modules", "ai_instructions_modules", "{B7086302-1D0A-D58E-FE97-DE1108A1BF0C}"
 	ProjectSection(SolutionItems) = preProject
 		ai_instruction_modules\ai-current-task.md = ai_instruction_modules\ai-current-task.md
 		ai_instruction_modules\ai-deployment-environment.md = ai_instruction_modules\ai-deployment-environment.md
