@@ -10,38 +10,59 @@
                 <p class="lead">Multi-agent runtime environment for collaborative development</p>
                 <hr class="my-4 border-light">
                 <p>Agents run in parallel in a Kubernetes cluster to operate on shared Git repositories.</p>
-                <a class="btn btn-light btn-lg" href="/api-test" role="button">Test API Connectivity</a>
             </div>
         </div>
     </div>
 
     <div class="row">
-        <div class="col-md-4">
-            <div class="card h-100">
+        <div class="col-md-6">
+            <div class="card h-100 border-primary">
                 <div class="card-body">
-                    <h5 class="card-title">🔧 API Testing</h5>
-                    <p class="card-text">Test connectivity to the OrchestratorService and verify all endpoints are working properly.</p>
-                    <a href="/api-test" class="btn btn-primary">Run API Tests</a>
+                    <h4 class="card-title text-primary">🎯 Project Management</h4>
+                    <p class="card-text">Create and manage projects with orchestrators and agent teams. This is the primary workspace for organizing your development projects.</p>
+                    <a href="/projects" class="btn btn-primary btn-lg">Manage Projects</a>
                 </div>
             </div>
         </div>
         
-        <div class="col-md-4">
+        <div class="col-md-6">
             <div class="card h-100">
                 <div class="card-body">
-                    <h5 class="card-title">🎯 Project Management</h5>
-                    <p class="card-text">Create and manage projects with orchestrators and agent teams.</p>
-                    <a href="/projects" class="btn btn-secondary">Manage Projects</a>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-4">
-            <div class="card h-100">
-                <div class="card-body">
-                    <h5 class="card-title">📊 System Status</h5>
+                    <h5 class="card-title">� System Status</h5>
                     <p class="card-text">Monitor system health, view logs, and check service status.</p>
                     <a href="/status" class="btn btn-info">Check Status</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">�🔧 API Testing</h5>
+                    <p class="card-text">Test connectivity to the OrchestratorService and verify all endpoints are working properly.</p>
+                    <a href="/api-test" class="btn btn-outline-primary">Run API Tests</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">🤖 Orchestrators</h5>
+                    <p class="card-text">Manage orchestrator instances and their configurations.</p>
+                    <a href="/orchestrators" class="btn btn-outline-secondary">Manage Orchestrators</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">� Teams & Agents</h5>
+                    <p class="card-text">Organize agents into teams and manage their assignments.</p>
+                    <a href="/teams" class="btn btn-outline-success">Manage Teams</a>
                 </div>
             </div>
         </div>
