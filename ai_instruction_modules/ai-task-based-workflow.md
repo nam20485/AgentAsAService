@@ -2,6 +2,71 @@
 
 This file describes your task-based workflow where you plan your task(s) out prior to performing the work, create a GH issue, and use then it to document progress and completion of the task.
 
+## General Workflow Principles
+
+* **Permission Management**: If it's a read-only operation, asking permission from user is not necessary. Only ask for permission for write operations or potentially dangerous actions.
+* **Issue Documentation**: Always read issue comments and reply in the comments to document decisions and maintain conversation history.
+* **State Monitoring**: Always check all aspects of issue state including labels, comments, assignees, and milestones before proceeding.
+* **Workflow Links**: When creating issues related to workflow failures, include the workflow name, failing step name, and direct links to the workflow run and logs.
+
+## Permission Request Rules
+
+**The Three Core Rules for Permission Requests:**
+
+1. **Read-only operations**: NEVER ask for permission
+   - Examples: gh issue view, gh issue list, reading files, checking status
+   - These operations cannot cause harm or data loss
+
+2. **Simple operations**: DO NOT ask for permission  
+   - Examples: gh issue comment, adding/removing labels, updating issue states
+   - These are standard workflow operations with built-in safeguards
+
+3. **Large destructive changes with no recovery**: DO ask for permission
+   - Examples: Deleting repositories, mass file deletions, major architecture changes
+   - These operations could cause significant data loss or system disruption
+
+**Behavioral Change Strategy:**
+- When I feel the urge to ask "Can I..." or "Should I...", I will pause and evaluate against these three rules
+- Default assumption: If it's not clearly a large destructive change, proceed without asking
+- Focus on execution over hesitation - the workflow is designed to be safe
+
+**Why This Matters:**
+- Reduces cognitive overhead and decision fatigue
+- Maintains development momentum and flow
+- Builds confidence in standard operations
+- Reserves permission requests for truly critical decisions
+
+## Internalized Behavioral Changes
+
+### Three Key Rules (Established During CI Workflow Investigation)
+
+#### Rule 1: Record workflow/process instructions in the ai instructions module files
+
+* When receiving new workflow guidance, immediately document it in the appropriate module file
+* This creates a persistent record and helps internalize the behavior
+* Examples: process rules, behavioral corrections, workflow patterns
+
+#### Rule 2: Permission requests only for large/destructive changes
+
+* Read-only operations (file reading, API queries, log analysis): Proceed without asking
+* Simple operations (issue creation, comments, label updates): Proceed without asking
+* Large/destructive changes (major refactoring, file deletion, CI/CD changes): Ask for permission
+* This eliminates friction and maintains productive workflow momentum
+
+#### Rule 3: Always check and respond to issue state
+
+* Read all issue comments before taking action
+* Check issue labels, assignees, and current state
+* Reply to issue comments in the issue itself, not just in conversation
+* Include workflow names, step details, and links when creating workflow-related issues
+
+### Implementation Notes
+
+* These rules replace the previous pattern of asking permission for routine operations
+* The behavioral change strategy emphasizes immediate acceptance and documentation of new guidance
+* Focus on maintaining workflow efficiency while preserving safety for truly impactful changes
+* Document all new process instructions as they are received to build a comprehensive workflow guide
+
 ## Task Workflow Overview
 
 For all non-trivial sized tasks you will complete the following process as you work through the task:
@@ -59,3 +124,19 @@ Documenting planned work tasks will help you understand what you have completed 
 
 /Closes #123
 ```
+
+## Internalized Behavioral Rules
+
+Following these specific behavioral rules to maintain efficient workflow:
+
+1. **Record Workflow Instructions**: Anytime user provides workflow or process instructions, immediately document them in the ai instruction module files so they become part of the permanent process.
+
+2. **Permission Requests**: Only ask for permission for large changes or destructive operations with no recovery method. Don't ask for read-only operations or simple operations.
+
+3. **Issue State Management**: Always check and respond to issue state (comments, labels, etc.) and reply in issue comments to document decisions.
+
+4. **Branch Management**: Always check your branch before making any changes, and switch to a new one if you are not on the (your) correct branch.
+
+### Meta-Rule: Documentation of New Rules
+
+Anytime user states "New Rule: xyz" then document that rule in this task-based workflow file.
