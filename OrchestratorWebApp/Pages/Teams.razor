@@ -166,13 +166,13 @@
     private string createMessage = "";
     private bool createSuccess = false;
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
-        await LoadTeams();
-        await LoadAvailableAgents();
+        LoadTeams();
+        LoadAvailableAgents();
     }
 
-    private async Task LoadTeams()
+    private void LoadTeams()
     {
         isLoading = true;
         errorMessage = "";
@@ -215,7 +215,7 @@
         }
     }
 
-    private async Task LoadAvailableAgents()
+    private void LoadAvailableAgents()
     {
         try
         {
@@ -235,7 +235,7 @@
         }
     }
 
-    private async Task CreateTeam()
+    private void CreateTeam()
     {
         if (string.IsNullOrWhiteSpace(newTeamName))
             return;
@@ -271,7 +271,7 @@
         }
     }
 
-    private async Task AddAgentToTeam(string teamId)
+    private void AddAgentToTeam(string teamId)
     {
         if (string.IsNullOrEmpty(selectedAgentId))
             return;
@@ -287,7 +287,7 @@
         }
     }
 
-    private async Task RemoveAgentFromTeam(string teamId, string agentId)
+    private void RemoveAgentFromTeam(string teamId, string agentId)
     {
         var team = teams.FirstOrDefault(t => t.Id == teamId);
         if (team != null)

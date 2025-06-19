@@ -155,12 +155,12 @@
     private bool isLoading = false;
     private string errorMessage = "";
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
-        await LoadAgents();
+        LoadAgents();
     }
 
-    private async Task LoadAgents()
+    private void LoadAgents()
     {
         isLoading = true;
         errorMessage = "";
