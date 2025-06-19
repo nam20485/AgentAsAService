@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
@@ -21,14 +22,20 @@ public class LiteDbDocumentRepository<T> : IDocumentRepository<T> where T : clas
     {
         _connectionString = connectionString ?? throw new ArgumentNullException(nameof(connectionString));
         _collectionName = GetCollectionName();
+
+        // make sure the directory where the DB file will be created exists
+        var directoryName = Path.GetDirectoryName(_connectionString);
+        if (!Directory.Exists(directoryName))
+        {
+            Directory.CreateDirectory(directoryName);
+        }
     }
 
     public Task<T> UpsertAsync(string id, T document)
     {
         if (string.IsNullOrEmpty(id))
             throw new ArgumentException("Document ID cannot be null or empty", nameof(id));
-        if (document == null)
-            throw new ArgumentNullException(nameof(document));
+        ArgumentNullException.ThrowIfNull(document);
 
         using var db = new LiteDatabase(_connectionString);
         var collection = db.GetCollection<T>(_collectionName);
