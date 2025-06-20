@@ -19,8 +19,12 @@ internal class Program
         var environment = Environment.GetEnvironmentVariable("Environment");
         if (! string.IsNullOrEmpty(environment) && environment?.ToLower() != "development")
         {
-            var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
-            builder.WebHost.UseUrls($"http://*:{port}");
+            var port = Environment.GetEnvironmentVariable("PORT");
+            // ensure port is valid (not blank/null, positive int)
+            if (int.TryParse(port, out int parsedPort) && parsedPort > 0)
+            {
+                builder.WebHost.UseUrls($"http://*:{port}");
+            }   
         }
 
         // Add services to the container.
