@@ -13,7 +13,7 @@ internal class Program
     //private const string DEFAULT_LISTEN_PORT = "7001";
 
     private static void Main(string[] args)
-     {
+    {
         var builder = WebApplication.CreateBuilder(args);
 
         // Configure Kestrel to use the PORT environment variable if available
