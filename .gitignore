@@ -86,3 +86,4 @@ OrchestratorWebApp/publish/
 Agentservice/publish/
 OrchestratorService/publish/
 OrchestratorService/local-storage/
+/AgentService/local-storage/agentservice.db
