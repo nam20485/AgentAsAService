@@ -83,7 +83,7 @@ node_modules/
 # End of .gitignore
 OrchestratorWebApp/app/
 OrchestratorWebApp/publish/
-Agentservice/publish/
+agentservice/publish/
 OrchestratorService/publish/
 OrchestratorService/local-storage/
 /AgentService/local-storage/agentservice.db
