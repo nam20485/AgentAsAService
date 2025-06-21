@@ -11,6 +11,7 @@ using Microsoft.IdentityModel.Tokens;
 
 using OrchestratorService.Services;
 
+using SharedLib;
 using SharedLib.Extensions;
 
 internal class Program
@@ -79,9 +80,10 @@ internal class Program
             client =>
             {
                 // Configure base URL
+                var url = builder.Configuration["AgentService:BaseUrl"];
                 if (!Uri.IsWellFormedUriString(url, UriKind.RelativeOrAbsolute))
                 {
-                    throw new InvalidArgumentException($"AgentService:BaseUrl: invalid url: [{url}]. Supply valid url for thi setting.")
+                    throw new InvalidUrlException($"AgentService:BaseUrl: invalid url: [{url}]. Supply valid url for thi setting.");
                 }
                 client.BaseAddress = new Uri(url);
             });       
