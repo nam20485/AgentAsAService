@@ -217,6 +217,9 @@
 
     private void LoadAvailableAgents()
     {
+        isLoading = true;
+        errorMessage = "";  
+
         try
         {
             // Mock data for now - replace with actual API call
@@ -231,7 +234,12 @@
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error loading agents: {ex.Message}");
+            errorMessage = $"Error loading teams: {ex.Message}";
+            //Console.WriteLine($"Error loading agents: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
         }
     }
 
