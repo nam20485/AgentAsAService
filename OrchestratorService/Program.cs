@@ -1,10 +1,16 @@
+using System;
+
 using FirebaseAdmin;
+
 using Google.Cloud.Firestore;
+
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
-using OrchestratorService.Services;
-using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.IdentityModel.Tokens;
+
+using OrchestratorService.Services;
+
 using SharedLib.Extensions;
 
 internal class Program
@@ -73,7 +79,10 @@ internal class Program
             client =>
             {
                 // Configure base URL
-                var url = builder.Configuration["AgentService:BaseUrl"];
+                if (!Uri.IsWellFormedUriString(url, UriKind.RelativeOrAbsolute))
+                {
+                    throw new InvalidArgumentException($"AgentService:BaseUrl: invalid url: [{url}]. Supply valid url for thi setting.")
+                }
                 client.BaseAddress = new Uri(url);
             });       
         // Add document store services (replaces direct Firestore registration)
