@@ -6,7 +6,9 @@ using System.Threading.Tasks;
 
 namespace SharedLib.DTOs
 {
-    internal class UpdateAgentStateRequest
+    public class UpdateAgentStateRequest
     {
+        public string AgentId { get; set; } = "";
+        public string State { get; set; } = "";
     }
 }
