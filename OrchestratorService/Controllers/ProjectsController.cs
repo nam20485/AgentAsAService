@@ -9,13 +9,13 @@ namespace OrchestratorService.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ProjectController : ControllerBase
+    public class ProjectsController : ControllerBase
     {
         private readonly IProjectStore _projectStore;
         private readonly IOrchestratorStore _orchestratorStore;
-        private readonly ILogger<ProjectController> _logger;
+        private readonly ILogger<ProjectsController> _logger;
 
-        public ProjectController(IProjectStore projectStore, IOrchestratorStore orchestratorStore, ILogger<ProjectController> logger)
+        public ProjectsController(IProjectStore projectStore, IOrchestratorStore orchestratorStore, ILogger<ProjectsController> logger)
         {
             _projectStore = projectStore;
             _orchestratorStore = orchestratorStore;
@@ -28,23 +28,30 @@ namespace OrchestratorService.Controllers
         {
             try
             {
+                // Create orchestrator using the new store
+                var orchestrator = await _orchestratorStore.CreateAsync(
+                    new CreateOrchestratorRequest
+                    {
+                        Name = request.OrchestratorName
+                    });
+
                 // Create the project entity
                 var project = new Project
                 {
                     Name = request.ProjectName,
-                    OrchestratorId = "", // Will be set after orchestrator creation
+                    OrchestratorId = orchestrator.Id,
                     Repository = new Repository
                     {
                         Name = request.RepositoryName,
                         Address = request.RepositoryAddress
+                    },
+                    Team = new Team
+                    {
+                        Id = Guid.NewGuid().ToString(),
+                        Name = $"{request.ProjectName} Team"
                     }
-                };                // Create orchestrator using the new store
-                var orchestratorRequest = new CreateOrchestratorRequest
-                {
-                    Name = request.OrchestratorName
-                };
-                var orchestrator = await _orchestratorStore.CreateAsync(orchestratorRequest);
-                
+                };           
+                              
                 // Set the orchestrator ID
                 project.OrchestratorId = orchestrator.Id;
                 project.Team.Name = $"{project.Name} Team";

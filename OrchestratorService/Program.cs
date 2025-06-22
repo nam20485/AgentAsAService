@@ -1,24 +1,42 @@
+using System;
+
 using FirebaseAdmin;
+
 using Google.Cloud.Firestore;
+
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
-using OrchestratorService.Services;
-using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.IdentityModel.Tokens;
+
+using OrchestratorService.Services;
+
+using SharedLib;
 using SharedLib.Extensions;
 
 internal class Program
 {
     private static void Main(string[] args)
     {
-        var builder = WebApplication.CreateBuilder(args);        // Configure Kestrel to use the PORT environment variable if available
+        var builder = WebApplication.CreateBuilder(args);
+        
+        // Configure Kestrel to use the PORT environment variable if available
         // In production (Cloud Run): uses $PORT from container environment
-        // In development: uses default port 8080 if PORT not set
-        var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
-        builder.WebHost.UseUrls($"http://*:{port}");
+        // In development: uses port from appsettings.json or standard env vars, etc. if $PORT not set
+        var environment = Environment.GetEnvironmentVariable("Environment");
+        if (! string.IsNullOrEmpty(environment) && environment?.ToLower() != "development")
+        {
+            var port = Environment.GetEnvironmentVariable("PORT");
+            // ensure port is valid (not blank/null, positive int)
+            if (int.TryParse(port, out int parsedPort) && parsedPort > 0)
+            {
+                builder.WebHost.UseUrls($"http://*:{port}");
+            }   
+        }
 
         // Add services to the container.
         builder.Services.AddControllers();
+        
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen(c =>
         {
@@ -58,8 +76,21 @@ internal class Program
         builder.Services.AddHttpClient();
 
         // Register HTTP client services
-        builder.Services.AddHttpClient<IAgentHttpClientService, AgentHttpClientService>();        // Add document store services (replaces direct Firestore registration)
+        builder.Services.AddHttpClient<IAgentHttpClientService, AgentHttpClientService>(
+            client =>
+            {
+                // Configure base URL
+                var url = builder.Configuration["AgentService:BaseUrl"];
+                if (!Uri.IsWellFormedUriString(url, UriKind.RelativeOrAbsolute))
+                {
+                    throw new InvalidUrlException($"AgentService:BaseUrl: invalid url: [{url}]. Supply valid url for thi setting.");
+                }
+                client.BaseAddress = new Uri(url);
+            });       
+        // Add document store services (replaces direct Firestore registration)
         builder.Services.AddDocumentStore(builder.Configuration);
+
+        builder.Services.AddScoped<ITeamService, TeamService>();
 
         // Add Google Cloud Firestore (still needed for direct usage in some controllers)
         builder.Services.AddSingleton(provider =>
@@ -82,7 +113,8 @@ internal class Program
                     ValidateLifetime = true,
                     ClockSkew = TimeSpan.Zero
                 };
-            });        // Add Authorization with environment-specific policies
+            });        
+        // Add Authorization with environment-specific policies
         builder.Services.AddAuthorization(options =>
         {
             if (builder.Environment.IsDevelopment() || builder.Environment.EnvironmentName == "Testing")
@@ -133,7 +165,8 @@ internal class Program
                       .AllowAnyHeader()
                       .AllowCredentials();
             });
-        });        // Add health checks
+        });   
+        // Add health checks
         builder.Services.AddHealthChecks()
             .AddCheck("self", () => HealthCheckResult.Healthy("OrchestratorService is running"), tags: new[] { "ready", "live" })
             .AddCheck("firestore", () =>

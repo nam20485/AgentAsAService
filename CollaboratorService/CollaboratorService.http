@@ -1,0 +1,6 @@
+@CollaboratorService_HostAddress = http://localhost:5137
+
+GET {{CollaboratorService_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

@@ -3,18 +3,13 @@
     "Name": "Https + Web w/o Debugging",
     "Projects": [
       {
-        "Path": "AgentService\\AgentService.csproj",
-        "Action": "StartWithoutDebugging",
-        "DebugTarget": "https"
-      },
-      {
         "Path": "OrchestratorService\\OrchestratorService.csproj",
-        "Action": "StartWithoutDebugging",
+        "Action": "Start",
         "DebugTarget": "https"
       },
       {
         "Path": "OrchestratorWebApp\\OrchestratorWebApp.csproj",
-        "Action": "StartWithoutDebugging",
+        "Action": "Start",
         "DebugTarget": "https"
       }
     ]
@@ -40,21 +35,16 @@
     ]
   },
   {
-    "Name": "Https + Web - Debugging",
+    "Name": "OrchSvc + OrchWeb (Https) Debug",
     "Projects": [
       {
-        "Path": "AgentService\\AgentService.csproj",
-        "Action": "StartWithoutDebugging",
-        "DebugTarget": "https"
-      },
-      {
         "Path": "OrchestratorService\\OrchestratorService.csproj",
-        "Action": "StartWithoutDebugging",
+        "Action": "Start",
         "DebugTarget": "https"
       },
       {
         "Path": "OrchestratorWebApp\\OrchestratorWebApp.csproj",
-        "Action": "StartWithoutDebugging",
+        "Action": "Start",
         "DebugTarget": "https"
       }
     ]
@@ -136,6 +126,21 @@
         "Path": "DesktopClient\\DesktopClient.csproj",
         "Action": "StartWithoutDebugging",
         "DebugTarget": "WSL"
+      }
+    ]
+  },
+  {
+    "Name": "AgentService + CollabSvc (Https) Debug",
+    "Projects": [
+      {
+        "Path": "AgentService\\AgentService.csproj",
+        "Action": "Start",
+        "DebugTarget": "https"
+      },
+      {
+        "Path": "CollaboratorService\\CollaboratorService.csproj",
+        "Action": "Start",
+        "DebugTarget": "https"
       }
     ]
   }

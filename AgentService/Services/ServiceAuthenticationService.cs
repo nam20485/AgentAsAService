@@ -31,7 +31,6 @@ public class ServiceAuthenticationService : IServiceAuthenticationService
             
             // Create scoped credential for the specified scopes
             var scopedCredential = credential.CreateScoped(scopes);
-            
             // Get access token
             var token = await ((ITokenAccess)scopedCredential).GetAccessTokenForRequestAsync();
             return token ?? throw new InvalidOperationException("Failed to obtain access token");

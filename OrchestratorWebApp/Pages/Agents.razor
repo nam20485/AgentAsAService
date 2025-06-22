@@ -1,0 +1,322 @@
+@page "/agents"
+@using System.Net.Http
+@using System.Text.Json
+@inject HttpClient Http
+
+<PageTitle>Agents - Agent as a Service</PageTitle>
+
+<h1>🤖 Agents Management</h1>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5>All Agents</h5>
+                <div>                    <div class="btn-group me-2" role="group">
+                        <input type="radio" class="btn-check" name="groupBy" id="groupByTeam" value="team" @onchange="@(() => groupBy = "team")" checked="@(groupBy == "team")">
+                        <label class="btn btn-outline-primary" for="groupByTeam">Group by Team</label>
+
+                        <input type="radio" class="btn-check" name="groupBy" id="groupByStatus" value="status" @onchange="@(() => groupBy = "status")">
+                        <label class="btn btn-outline-primary" for="groupByStatus">Group by Status</label>
+                        
+                        <input type="radio" class="btn-check" name="groupBy" id="groupByNone" value="none" @onchange="@(() => groupBy = "none")">
+                        <label class="btn btn-outline-primary" for="groupByNone">No Grouping</label>
+                    </div>
+                    <button class="btn btn-primary" @onclick="LoadAgents">
+                        <span class="bi bi-arrow-clockwise" aria-hidden="true"></span> Refresh
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                @if (isLoading)
+                {
+                    <div class="text-center">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p>Loading agents...</p>
+                    </div>
+                }
+                else if (!string.IsNullOrEmpty(errorMessage))
+                {
+                    <div class="alert alert-danger" role="alert">
+                        <strong>Error:</strong> @errorMessage
+                    </div>
+                }
+                else if (agents.Any())
+                {
+                    @if (groupBy == "team")
+                    {
+                        @foreach (var teamGroup in agents.GroupBy(a => a.TeamName ?? "Unassigned"))
+                        {
+                            <div class="mb-4">
+                                <h6 class="border-bottom pb-2">
+                                    <span class="bi bi-people-fill" aria-hidden="true"></span>
+                                    @teamGroup.Key (@teamGroup.Count() agents)
+                                </h6>
+                                <div class="row">
+                                    @foreach (var agent in teamGroup)
+                                    {
+                                        @RenderAgentCard(agent, "col-md-4 mb-3")
+                                    }
+                                </div>
+                            </div>
+                        }
+                    }
+                    else if (groupBy == "status")
+                    {
+                        @foreach (var statusGroup in agents.GroupBy(a => a.Status))
+                        {
+                            <div class="mb-4">
+                                <h6 class="border-bottom pb-2">
+                                    <span class="bi bi-circle-fill text-@GetStatusColor(statusGroup.Key)" aria-hidden="true"></span>
+                                    @statusGroup.Key (@statusGroup.Count() agents)
+                                </h6>
+                                <div class="row">
+                                    @foreach (var agent in statusGroup)
+                                    {
+                                        @RenderAgentCard(agent, "col-md-4 mb-3")
+                                    }
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="row">
+                            @foreach (var agent in agents)
+                            {
+                                @RenderAgentCard(agent, "col-md-4 mb-3")
+                            }
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="alert alert-info" role="alert">
+                        <strong>No agents found.</strong> Agents will appear here once they are created and configured.
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5>Agent Statistics</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-3">
+                        <h4 class="text-success">@agents.Count(a => a.Status == "Active")</h4>
+                        <small class="text-muted">Active</small>
+                    </div>
+                    <div class="col-3">
+                        <h4 class="text-warning">@agents.Count(a => a.Status == "Idle")</h4>
+                        <small class="text-muted">Idle</small>
+                    </div>
+                    <div class="col-3">
+                        <h4 class="text-info">@agents.Count(a => a.Status == "Busy")</h4>
+                        <small class="text-muted">Busy</small>
+                    </div>
+                    <div class="col-3">
+                        <h4 class="text-danger">@agents.Count(a => a.Status == "Offline")</h4>
+                        <small class="text-muted">Offline</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5>Team Distribution</h5>
+            </div>
+            <div class="card-body">
+                @foreach (var teamGroup in agents.GroupBy(a => a.TeamName ?? "Unassigned"))
+                {
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span>@teamGroup.Key</span>
+                        <span class="badge bg-primary">@teamGroup.Count()</span>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<AgentDetails> agents = new();
+    private string groupBy = "team";
+    private bool isLoading = false;
+    private string errorMessage = "";
+
+    protected override void OnInitialized()
+    {
+        LoadAgents();
+    }
+
+    private void LoadAgents()
+    {
+        isLoading = true;
+        errorMessage = "";
+        
+        try
+        {
+            // Mock data for now - replace with actual API call
+            agents = new List<AgentDetails>
+            {
+                new AgentDetails 
+                { 
+                    Id = "agent-1", 
+                    Name = "UI Designer Agent", 
+                    Status = "Active", 
+                    TeamName = "Frontend Team",
+                    Capabilities = new[] { "UI Design", "Figma", "Prototyping" },
+                    LastActivity = DateTime.Now.AddMinutes(-15)
+                },
+                new AgentDetails 
+                { 
+                    Id = "agent-2", 
+                    Name = "React Developer Agent", 
+                    Status = "Busy", 
+                    TeamName = "Frontend Team",
+                    Capabilities = new[] { "React", "TypeScript", "CSS" },
+                    LastActivity = DateTime.Now.AddMinutes(-2)
+                },
+                new AgentDetails 
+                { 
+                    Id = "agent-3", 
+                    Name = "API Developer Agent", 
+                    Status = "Active", 
+                    TeamName = "Backend Team",
+                    Capabilities = new[] { "ASP.NET Core", "REST API", "Database" },
+                    LastActivity = DateTime.Now.AddMinutes(-5)
+                },
+                new AgentDetails 
+                { 
+                    Id = "agent-4", 
+                    Name = "Database Agent", 
+                    Status = "Idle", 
+                    TeamName = "Backend Team",
+                    Capabilities = new[] { "SQL Server", "Entity Framework", "Database Design" },
+                    LastActivity = DateTime.Now.AddHours(-2)
+                },
+                new AgentDetails 
+                { 
+                    Id = "agent-5", 
+                    Name = "Testing Agent", 
+                    Status = "Offline", 
+                    TeamName = null,
+                    Capabilities = new[] { "Unit Testing", "Integration Testing", "Test Automation" },
+                    LastActivity = DateTime.Now.AddHours(-6)
+                }
+            };
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading agents: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private RenderFragment RenderAgentCard(AgentDetails agent, string cssClass) => builder =>
+    {
+        builder.OpenElement(1, "div");
+        builder.AddAttribute(2, "class", cssClass);
+        
+        builder.OpenElement(3, "div");
+        builder.AddAttribute(4, "class", "card h-100");
+        
+        builder.OpenElement(5, "div");
+        builder.AddAttribute(6, "class", "card-body");
+        
+        // Agent name and status
+        builder.OpenElement(7, "div");
+        builder.AddAttribute(8, "class", "d-flex justify-content-between align-items-start mb-2");
+        
+        builder.OpenElement(9, "h6");
+        builder.AddAttribute(10, "class", "card-title mb-0");
+        builder.AddContent(11, agent.Name);
+        builder.CloseElement();
+        
+        builder.OpenElement(12, "span");
+        builder.AddAttribute(13, "class", $"badge bg-{GetStatusColor(agent.Status)}");
+        builder.AddContent(14, agent.Status);
+        builder.CloseElement();
+        
+        builder.CloseElement(); // Close d-flex div
+        
+        // Team info
+        if (!string.IsNullOrEmpty(agent.TeamName))
+        {
+            builder.OpenElement(15, "p");
+            builder.AddAttribute(16, "class", "text-muted small mb-2");
+            builder.OpenElement(17, "span");
+            builder.AddAttribute(18, "class", "bi bi-people-fill");
+            builder.CloseElement();
+            builder.AddContent(19, $" {agent.TeamName}");
+            builder.CloseElement();
+        }
+        
+        // Capabilities
+        if (agent.Capabilities?.Any() == true)
+        {
+            builder.OpenElement(20, "div");
+            builder.AddAttribute(21, "class", "mb-2");
+            foreach (var capability in agent.Capabilities.Take(3))
+            {
+                builder.OpenElement(22, "span");
+                builder.AddAttribute(23, "class", "badge bg-light text-dark me-1 mb-1");
+                builder.AddContent(24, capability);
+                builder.CloseElement();
+            }
+            builder.CloseElement();
+        }
+        
+        // Last activity
+        builder.OpenElement(25, "small");
+        builder.AddAttribute(26, "class", "text-muted");
+        builder.AddContent(27, $"Last activity: {GetRelativeTime(agent.LastActivity)}");
+        builder.CloseElement();
+        
+        builder.CloseElement(); // Close card-body
+        builder.CloseElement(); // Close card
+        builder.CloseElement(); // Close col div
+    };
+
+    private string GetStatusColor(string status) => status switch
+    {
+        "Active" => "success",
+        "Busy" => "info", 
+        "Idle" => "warning",
+        "Offline" => "danger",
+        _ => "secondary"
+    };
+
+    private string GetRelativeTime(DateTime dateTime)
+    {
+        var timeSpan = DateTime.Now - dateTime;
+        if (timeSpan.TotalMinutes < 1) return "Just now";
+        if (timeSpan.TotalMinutes < 60) return $"{(int)timeSpan.TotalMinutes}m ago";
+        if (timeSpan.TotalHours < 24) return $"{(int)timeSpan.TotalHours}h ago";
+        return $"{(int)timeSpan.TotalDays}d ago";
+    }
+
+    public class AgentDetails
+    {
+        public string Id { get; set; } = "";
+        public string Name { get; set; } = "";
+        public string Status { get; set; } = "";
+        public string? TeamName { get; set; }
+        public string[] Capabilities { get; set; } = Array.Empty<string>();
+        public DateTime LastActivity { get; set; }
+    }
+}

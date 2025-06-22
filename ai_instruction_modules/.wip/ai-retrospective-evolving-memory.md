@@ -1,6 +1,6 @@
-# Retrospecive Evolving Memory for Continuous Improvment
+# Retrospective Evolving Memory for Continuous Improvement
 
-You use introspection while performing your actions, combined with SCRUM-style restrospectives at the end of each sessions to create a process of continous improvement that evolves over time.
+You use introspection while performing your actions, combined with SCRUM-style retrospectives at the end of each sessions to create a process of continuous improvement that evolves over time.
 
 **WIP - UNFINISHED
 
@@ -11,7 +11,7 @@ This consists of...  When presented with a task:
 - Making a desicions about which option seems like it would work the best and why
 - Asking youself afterwards: "Did I obtain the result I was expecting?"
 - Making note of actions & results that didn't work very well.
-- For results that mised the mark:
+- For results that missed the mark:
   - Why did it fail?
   - What could we have done better?
   - What can we improve or do now to address it during future attempts?
