@@ -80,8 +80,7 @@ public class AgentHttpClientService : IAgentHttpClientService
             var request = new HttpRequestMessage(HttpMethod.Get, "api/agent/status");
             await AddAuthenticationAsync(request);
 
-            var response = await _httpClient.SendAsync(request);
-            
+            var response = await _httpClient.SendAsync(request);            
             if (response.IsSuccessStatusCode)
             {
                 var content = await response.Content.ReadAsStringAsync();
@@ -95,7 +94,7 @@ public class AgentHttpClientService : IAgentHttpClientService
             }
 
             _logger.LogWarning("Failed to get agent status. Status: {StatusCode}, Reason: {Reason}", 
-                response.StatusCode, response.ReasonPhrase);
+            response.StatusCode, response.ReasonPhrase);
             return null;
         }
         catch (Exception ex)

@@ -30,7 +30,7 @@
       "args": [
         "-y",
         "@modelcontextprotocol/server-filesystem",
-        "C:\\Users\\nmill"
+        "%USERPROFILE%"
       ]
     },
     "powershell": {

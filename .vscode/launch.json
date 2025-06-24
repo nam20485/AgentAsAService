@@ -246,6 +246,29 @@
             }
         },
         {
+            "name": "🔧 Debug AgentService Only",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "Create local-storage directory",
+            "program": "${workspaceFolder}/AgentService/bin/Debug/net9.0/AgentService.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/AgentService", 
+            "console": "integratedTerminal",
+            "stopAtEntry": false,
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development"
+            },
+            "launchBrowser": {
+                "enabled": true,
+                "args": "http://localhost:8081/swagger"
+            },
+            "presentation": {
+                "hidden": false,
+                "group": "Debug Individual",
+                "order": 1
+            }
+        },
+        {
             "name": "🌐 Debug OrchestratorWebApp Only", 
             "type": "blazorwasm",
             "request": "launch",
@@ -260,10 +283,24 @@
     ],
     "compounds": [
         {
-            "name": "🚀 Debug Full Stack (Manual)",
+            "name": "🚀 Debug Full Stack x2 (Manual)",
             "configurations": [
                 "🔧 Debug OrchestratorService Only",
                 "🌐 Debug OrchestratorWebApp Only"
+            ],
+            "stopAll": true,
+            "presentation": {
+                "hidden": false,
+                "group": "Debug Compound",
+                "order": 1
+            }
+        },
+        {
+            "name": "🚀 Debug Full Stack x3 (Manual)",
+            "configurations": [
+                "🔧 Debug OrchestratorService Only",
+                "🌐 Debug OrchestratorWebApp Only",
+                "🔧 Debug AgentService Only"
             ],
             "stopAll": true,
             "presentation": {

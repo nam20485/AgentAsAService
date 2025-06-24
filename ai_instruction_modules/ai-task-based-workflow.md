@@ -107,11 +107,18 @@ Documenting planned work tasks will help you understand what you have completed 
 * Create feature branches for each issue using naming convention: `issues/<number>-<short-description>`
 * Example: `issues/42-fix-authentication-bug`
 * Branch should be created from `copilot` before starting work
+* **Link the issue to the branch** when creating the feature branch (or create the branch from the issue which automatically accomplishes the link)
 * Branch should be deleted after successful merge
-* Once finished you will create a PR and assign me as a reviewer.
 * Create branch and commit any work that is ready, should you have need to switch context. **Important**. We could expose ourselves to confusion and possible code loss if we leave changes 'dangling' in the working copy. Commit frequently and often. Many small commits are always better than fewer large ones.
 * Once I move us to teams plan you will have your own assigned account so you can then assign yourself as issue owner
 * Once project/milestone integration is completed you can assign project and I will review and assign milestone (or you can ask if obvious)
+
+#### Pull Request (PR) Requirements
+
+* **Assign nam20485 as a reviewer** when creating the PR
+* **Add `/Closes #<issue_number>`** to the PR description to automatically close the issue when merged
+* **Add `/gemini review`** to the PR to add Gemini Code Assist as a reviewer
+* Once finished you will create a PR following these requirements
 
 #### Commit Message Format
 

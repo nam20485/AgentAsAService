@@ -1,0 +1,322 @@
+@page "/teams"
+@using System.Net.Http
+@using System.Text.Json
+@inject HttpClient Http
+
+<PageTitle>Teams - Agent as a Service</PageTitle>
+
+<h1>👥 Teams Management</h1>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5>Team Overview</h5>
+            </div>
+            <div class="card-body">
+                <button class="btn btn-primary mb-3" @onclick="LoadTeams">
+                    <span class="bi bi-arrow-clockwise" aria-hidden="true"></span> Refresh Teams
+                </button>
+                
+                @if (isLoading)
+                {
+                    <div class="text-center">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p>Loading teams...</p>
+                    </div>
+                }
+                else if (!string.IsNullOrEmpty(errorMessage))
+                {
+                    <div class="alert alert-danger" role="alert">
+                        <strong>Error:</strong> @errorMessage
+                    </div>
+                }
+                else if (teams.Any())
+                {
+                    @foreach (var team in teams)
+                    {
+                        <div class="card mb-3">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0">
+                                    <span class="bi bi-people-fill" aria-hidden="true"></span>
+                                    @team.Name
+                                </h6>
+                                <span class="badge bg-primary">@team.Agents.Count agent(s)</span>
+                            </div>
+                            <div class="card-body">
+                                @if (team.Agents.Any())
+                                {
+                                    <div class="row">
+                                        @foreach (var agent in team.Agents)
+                                        {
+                                            <div class="col-md-4 mb-2">
+                                                <div class="d-flex justify-content-between align-items-center p-2 border rounded">
+                                                    <span>
+                                                        <span class="bi bi-person-gear" aria-hidden="true"></span>
+                                                        @agent.Name
+                                                    </span>
+                                                    <button class="btn btn-sm btn-outline-danger" @onclick="() => RemoveAgentFromTeam(team.Id, agent.Id)">
+                                                        <span class="bi bi-x" aria-hidden="true"></span>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                                else
+                                {
+                                    <p class="text-muted mb-0">No agents assigned to this team.</p>
+                                }
+                                
+                                <div class="mt-3">
+                                    <div class="input-group">
+                                        <select class="form-select" @bind="selectedAgentId">
+                                            <option value="">Select an agent to add...</option>
+                                            @foreach (var agent in availableAgents.Where(a => !team.Agents.Any(ta => ta.Id == a.Id)))
+                                            {
+                                                <option value="@agent.Id">@agent.Name</option>
+                                            }
+                                        </select>
+                                        <button class="btn btn-outline-success" @onclick="() => AddAgentToTeam(team.Id)" disabled="@string.IsNullOrEmpty(selectedAgentId)">
+                                            <span class="bi bi-plus" aria-hidden="true"></span> Add Agent
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="alert alert-info" role="alert">
+                        <strong>No teams found.</strong> Create your first team to organize agents.
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5>Create New Team</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label for="teamName" class="form-label">Team Name:</label>
+                    <input type="text" class="form-control" id="teamName" @bind="newTeamName" placeholder="Enter team name" />
+                </div>
+                <div class="mb-3">
+                    <label for="teamDescription" class="form-label">Description:</label>
+                    <textarea class="form-control" id="teamDescription" @bind="newTeamDescription" placeholder="Team description (optional)" rows="3"></textarea>
+                </div>
+                <button class="btn btn-success" @onclick="CreateTeam" disabled="@(string.IsNullOrWhiteSpace(newTeamName) || isCreating)">
+                    @if (isCreating)
+                    {
+                        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                        <span>Creating...</span>
+                    }
+                    else
+                    {
+                        <span class="bi bi-plus-circle" aria-hidden="true"></span>
+                        <span>Create Team</span>
+                    }
+                </button>
+                
+                @if (!string.IsNullOrEmpty(createMessage))
+                {
+                    <div class="mt-3 alert @(createSuccess ? "alert-success" : "alert-danger")" role="alert">
+                        @createMessage
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5>Quick Stats</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-6">
+                        <h4 class="text-primary">@teams.Count</h4>
+                        <small class="text-muted">Teams</small>
+                    </div>
+                    <div class="col-6">
+                        <h4 class="text-success">@availableAgents.Count</h4>
+                        <small class="text-muted">Total Agents</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<TeamInfo> teams = new();
+    private List<AgentInfo> availableAgents = new();
+    private string newTeamName = "";
+    private string newTeamDescription = "";
+    private string selectedAgentId = "";
+    private bool isLoading = false;
+    private bool isCreating = false;
+    private string errorMessage = "";
+    private string createMessage = "";
+    private bool createSuccess = false;
+
+    protected override void OnInitialized()
+    {
+        LoadTeams();
+        LoadAvailableAgents();
+    }
+
+    private void LoadTeams()
+    {
+        isLoading = true;
+        errorMessage = "";
+        
+        try
+        {
+            // Mock data for now - replace with actual API call
+            teams = new List<TeamInfo>
+            {
+                new TeamInfo 
+                { 
+                    Id = "team-1", 
+                    Name = "Frontend Team", 
+                    Description = "UI/UX Development Team",
+                    Agents = new List<AgentInfo>
+                    {
+                        new AgentInfo { Id = "agent-1", Name = "UI Designer Agent" },
+                        new AgentInfo { Id = "agent-2", Name = "React Developer Agent" }
+                    }
+                },
+                new TeamInfo 
+                { 
+                    Id = "team-2", 
+                    Name = "Backend Team", 
+                    Description = "API and Database Team",
+                    Agents = new List<AgentInfo>
+                    {
+                        new AgentInfo { Id = "agent-3", Name = "API Developer Agent" }
+                    }
+                }
+            };
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading teams: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void LoadAvailableAgents()
+    {
+        isLoading = true;
+        errorMessage = "";  
+
+        try
+        {
+            // Mock data for now - replace with actual API call
+            availableAgents = new List<AgentInfo>
+            {
+                new AgentInfo { Id = "agent-1", Name = "UI Designer Agent" },
+                new AgentInfo { Id = "agent-2", Name = "React Developer Agent" },
+                new AgentInfo { Id = "agent-3", Name = "API Developer Agent" },
+                new AgentInfo { Id = "agent-4", Name = "Database Agent" },
+                new AgentInfo { Id = "agent-5", Name = "Testing Agent" }
+            };
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading teams: {ex.Message}";
+            //Console.WriteLine($"Error loading agents: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void CreateTeam()
+    {
+        if (string.IsNullOrWhiteSpace(newTeamName))
+            return;
+
+        isCreating = true;
+        createMessage = "";
+        
+        try
+        {
+            // Mock creation - replace with actual API call
+            var newTeam = new TeamInfo
+            {
+                Id = $"team-{teams.Count + 1}",
+                Name = newTeamName.Trim(),
+                Description = newTeamDescription.Trim(),
+                Agents = new List<AgentInfo>()
+            };
+            
+            teams.Add(newTeam);
+            createMessage = $"Team '{newTeamName}' created successfully!";
+            createSuccess = true;
+            newTeamName = "";
+            newTeamDescription = "";
+        }
+        catch (Exception ex)
+        {
+            createMessage = $"Error creating team: {ex.Message}";
+            createSuccess = false;
+        }
+        finally
+        {
+            isCreating = false;
+        }
+    }
+
+    private void AddAgentToTeam(string teamId)
+    {
+        if (string.IsNullOrEmpty(selectedAgentId))
+            return;
+
+        var team = teams.FirstOrDefault(t => t.Id == teamId);
+        var agent = availableAgents.FirstOrDefault(a => a.Id == selectedAgentId);
+        
+        if (team != null && agent != null)
+        {
+            team.Agents.Add(agent);
+            selectedAgentId = "";
+            StateHasChanged();
+        }
+    }
+
+    private void RemoveAgentFromTeam(string teamId, string agentId)
+    {
+        var team = teams.FirstOrDefault(t => t.Id == teamId);
+        if (team != null)
+        {
+            team.Agents.RemoveAll(a => a.Id == agentId);
+            StateHasChanged();
+        }
+    }
+
+    public class TeamInfo
+    {
+        public string Id { get; set; } = "";
+        public string Name { get; set; } = "";
+        public string Description { get; set; } = "";
+        public List<AgentInfo> Agents { get; set; } = new();
+    }
+
+    public class AgentInfo
+    {
+        public string Id { get; set; } = "";
+        public string Name { get; set; } = "";
+        public string Status { get; set; } = "Active";
+    }
+}

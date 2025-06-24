@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace SharedLib.DTOs
 {
-    internal class UpdateAgentStateResponse
+    public class UpdateAgentStateResponse
     {
     }
 }
