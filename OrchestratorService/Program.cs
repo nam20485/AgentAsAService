@@ -1,10 +1,17 @@
+using System;
+
 using FirebaseAdmin;
+
 using Google.Cloud.Firestore;
+
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
-using OrchestratorService.Services;
-using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.IdentityModel.Tokens;
+
+using OrchestratorService.Services;
+
+using SharedLib;
 using SharedLib.Extensions;
 
 internal class Program
@@ -19,8 +26,12 @@ internal class Program
         var environment = Environment.GetEnvironmentVariable("Environment");
         if (! string.IsNullOrEmpty(environment) && environment?.ToLower() != "development")
         {
-            var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
-            builder.WebHost.UseUrls($"http://*:{port}");
+            var port = Environment.GetEnvironmentVariable("PORT");
+            // ensure port is valid (not blank/null, positive int)
+            if (int.TryParse(port, out int parsedPort) && parsedPort > 0)
+            {
+                builder.WebHost.UseUrls($"http://*:{port}");
+            }   
         }
 
         // Add services to the container.
@@ -70,6 +81,10 @@ internal class Program
             {
                 // Configure base URL
                 var url = builder.Configuration["AgentService:BaseUrl"];
+                if (!Uri.IsWellFormedUriString(url, UriKind.RelativeOrAbsolute))
+                {
+                    throw new InvalidUrlException($"AgentService:BaseUrl: invalid url: [{url}]. Supply valid url for thi setting.");
+                }
                 client.BaseAddress = new Uri(url);
             });       
         // Add document store services (replaces direct Firestore registration)

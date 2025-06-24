@@ -14,7 +14,6 @@ Overview and what to exepct below can go here.
 
 *And/or natural language  explanations, directives, etc.*
 
-
 ### Templates
 
 * This is just a suggested guideline for how to structure ai_instruction_module files.
