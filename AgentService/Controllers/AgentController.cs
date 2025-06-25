@@ -20,16 +20,20 @@ public class AgentController : ControllerBase
     private readonly ILogger<AgentController> _logger;
     private readonly IConfiguration _configuration;
 
+    private readonly IAgentSessionProviderService _agentSessionProviderService;
+
     public AgentController(
         IServiceAuthenticationService authService,
         IAgentSessionStore agentSessionStore,
         ILogger<AgentController> logger,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        IAgentSessionProviderService agentSessionProviderService)
     {
         _authService = authService;
         _agentSessionStore = agentSessionStore;
         _logger = logger;
         _configuration = configuration;
+        _agentSessionProviderService = agentSessionProviderService;
     }
 
     /// <summary>
@@ -78,7 +82,9 @@ public class AgentController : ControllerBase
             if (!_authService.IsAuthorized(allowedEmails))
             {
                 return Forbid("Service not authorized to create sessions");
-            }            var createRequest = new CreateAgentSessionRequest
+            }            
+            
+            var createRequest = new CreateAgentSessionRequest
             {
                 RepositoryUrl = request.RepositoryUrl,
                 Branch = request.Branch,

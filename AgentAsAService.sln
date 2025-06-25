@@ -22,7 +22,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ai_instructions_modules", "
 		ai_instruction_modules\ai-retrospective-evolving-memory.md = ai_instruction_modules\ai-retrospective-evolving-memory.md
 		ai_instruction_modules\ai-terminal-management.md = ai_instruction_modules\ai-terminal-management.md
 		ai_instruction_modules\ai-testing-validation.md = ai_instruction_modules\ai-testing-validation.md
-		ai_instruction_modules\ai-tools-config (2).md = ai_instruction_modules\ai-tools-config (2).md
 		ai_instruction_modules\ai-tools-config.md = ai_instruction_modules\ai-tools-config.md
 		ai_instruction_modules\ai-workflow-config.md = ai_instruction_modules\ai-workflow-config.md
 	EndProjectSection
