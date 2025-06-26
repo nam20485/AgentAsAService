@@ -34,6 +34,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{9C65
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CollaboratorService", "CollaboratorService\CollaboratorService.csproj", "{C1B060CD-1B19-4C79-BA15-4F76BB855F2D}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".gemini", ".gemini", "{813D0D6F-55A3-B6D0-CD42-2BAFB8FD62F4}"
+	ProjectSection(SolutionItems) = preProject
+		.gemini\settings.json = .gemini\settings.json
+		.gemini\GEMINI.md = .gemini\GEMINI.md
+		.gemini\code-config.yaml = .gemini\code-config.yaml
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
