@@ -69,9 +69,11 @@ public class AgentController : ControllerBase
             _logger.LogError(ex, "Error getting agent status");
             return StatusCode(500, "Internal server error");
         }
-    }    /// <summary>
-         /// Create a new agent session
-         /// </summary>
+    }
+
+    /// <summary>
+    /// Create a new agent session
+    /// </summary>
     [HttpPost("session")]
     public async Task<IActionResult> CreateSession([FromBody] CreateSessionRequest request)
     {
@@ -162,6 +164,198 @@ public class AgentController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving session {SessionId}", sessionId);
+            return StatusCode(500, "Internal server error");
+        }
+    }
+
+    /// <summary>
+    /// Start an agent session
+    /// </summary>
+    [HttpPost("session/{sessionId}/start")]
+    public async Task<IActionResult> StartSession(string sessionId)
+    {
+        try
+        {
+            var allowedEmails = _configuration["AgentService:AllowedServiceEmails"]?.Split(',') ?? Array.Empty<string>();
+
+            if (!_authService.IsAuthorized(allowedEmails))
+            {
+                return Forbid("Service not authorized to start sessions");
+            }
+
+            var agentSession = await _agentSessionStore.GetByIdAsync(sessionId);
+            if (agentSession == null)
+            {
+                return NotFound($"Session {sessionId} not found");
+            }
+
+            var result = await _agentSessionProviderService.StartSessionAsync(agentSession);
+
+            if (result)
+            {
+                _logger.LogInformation("Started session {SessionId}", sessionId);
+                return Ok(new { message = "Session started successfully", sessionId });
+            }
+
+            return BadRequest(new { error = "Failed to start session" });
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogWarning(ex, "Cannot start session {SessionId}", sessionId);
+            return BadRequest(new { error = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error starting session {SessionId}", sessionId);
+            return StatusCode(500, "Internal server error");
+        }
+    }
+
+    /// <summary>
+    /// Stop an agent session
+    /// </summary>
+    [HttpPost("session/{sessionId}/stop")]
+    public async Task<IActionResult> StopSession(string sessionId)
+    {
+        try
+        {
+            var allowedEmails = _configuration["AgentService:AllowedServiceEmails"]?.Split(',') ?? Array.Empty<string>();
+
+            if (!_authService.IsAuthorized(allowedEmails))
+            {
+                return Forbid("Service not authorized to stop sessions");
+            }
+
+            var result = await _agentSessionProviderService.StopSessionAsync(sessionId);
+
+            if (result)
+            {
+                _logger.LogInformation("Stopped session {SessionId}", sessionId);
+                return Ok(new { message = "Session stopped successfully", sessionId });
+            }
+
+            return BadRequest(new { error = "Failed to stop session or session was not running" });
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning(ex, "Invalid session ID {SessionId}", sessionId);
+            return BadRequest(new { error = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error stopping session {SessionId}", sessionId);
+            return StatusCode(500, "Internal server error");
+        }
+    }
+
+    /// <summary>
+    /// Pause an agent session
+    /// </summary>
+    [HttpPost("session/{sessionId}/pause")]
+    public async Task<IActionResult> PauseSession(string sessionId)
+    {
+        try
+        {
+            var allowedEmails = _configuration["AgentService:AllowedServiceEmails"]?.Split(',') ?? Array.Empty<string>();
+
+            if (!_authService.IsAuthorized(allowedEmails))
+            {
+                return Forbid("Service not authorized to pause sessions");
+            }
+
+            var result = await _agentSessionProviderService.PauseSessionAsync(sessionId);
+
+            if (result)
+            {
+                _logger.LogInformation("Paused session {SessionId}", sessionId);
+                return Ok(new { message = "Session paused successfully", sessionId });
+            }
+
+            return BadRequest(new { error = "Failed to pause session or session was not running" });
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning(ex, "Invalid session ID {SessionId}", sessionId);
+            return BadRequest(new { error = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error pausing session {SessionId}", sessionId);
+            return StatusCode(500, "Internal server error");
+        }
+    }
+
+    /// <summary>
+    /// Resume an agent session
+    /// </summary>
+    [HttpPost("session/{sessionId}/resume")]
+    public async Task<IActionResult> ResumeSession(string sessionId)
+    {
+        try
+        {
+            var allowedEmails = _configuration["AgentService:AllowedServiceEmails"]?.Split(',') ?? Array.Empty<string>();
+
+            if (!_authService.IsAuthorized(allowedEmails))
+            {
+                return Forbid("Service not authorized to resume sessions");
+            }
+
+            var result = await _agentSessionProviderService.ResumeSessionAsync(sessionId);
+
+            if (result)
+            {
+                _logger.LogInformation("Resumed session {SessionId}", sessionId);
+                return Ok(new { message = "Session resumed successfully", sessionId });
+            }
+
+            return BadRequest(new { error = "Failed to resume session" });
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogWarning(ex, "Cannot resume session {SessionId}", sessionId);
+            return BadRequest(new { error = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error resuming session {SessionId}", sessionId);
+            return StatusCode(500, "Internal server error");
+        }
+    }
+
+    /// <summary>
+    /// Get session status
+    /// </summary>
+    [HttpGet("session/{sessionId}/status")]
+    public async Task<IActionResult> GetSessionStatus(string sessionId)
+    {
+        try
+        {
+            var allowedEmails = _configuration["AgentService:AllowedServiceEmails"]?.Split(',') ?? Array.Empty<string>();
+
+            if (!_authService.IsAuthorized(allowedEmails))
+            {
+                return Forbid("Service not authorized to access session status");
+            }
+
+            var status = await _agentSessionProviderService.GetSessionStatusAsync(sessionId);
+            var isActive = await _agentSessionProviderService.IsSessionActiveAsync(sessionId);
+
+            if (status == null)
+            {
+                return NotFound($"Session {sessionId} not found");
+            }
+
+            return Ok(new 
+            { 
+                sessionId, 
+                status, 
+                isActive,
+                timestamp = DateTime.UtcNow 
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting session status {SessionId}", sessionId);
             return StatusCode(500, "Internal server error");
         }
     }
