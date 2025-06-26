@@ -4,6 +4,7 @@ using AgentService.Services;
 using SharedLib.Abstractions.Stores;
 using SharedLib.Model;
 using SharedLib.DTOs;
+using Google.Cloud.AIPlatform.V1;
 
 namespace AgentService.Controllers;
 
@@ -94,15 +95,22 @@ public class AgentController : ControllerBase
                 CreatedBy = User.FindFirst("email")?.Value
             };
 
+            // Incorporate additional properties into the session creation logic
             var agentSession = await _agentSessionStore.CreateAsync(createRequest);
 
+            // Update the response to include the additional properties
             var response = new
             {
                 SessionId = agentSession.Id,
                 RepositoryUrl = agentSession.RepositoryUrl,
                 CreatedAt = agentSession.CreatedAt,
                 CreatedBy = agentSession.CreatedBy,
-                Status = agentSession.Status
+                Status = agentSession.Status,
+                OrchestratorAddress = request.OrchestratorAddress,
+                ChatServerAddress = request.ChatServerAddress,
+                AgentId = request.AgentId,
+                Context = request.Context,
+                Role = request.Role
             };
 
             _logger.LogInformation("Created session {SessionId} for repository {Repository}",
@@ -369,4 +377,9 @@ public class CreateSessionRequest
     public string RepositoryUrl { get; set; } = string.Empty;
     public string? Branch { get; set; }
     public Dictionary<string, object>? Configuration { get; set; }
+    public Uri OrchestratorAddress { get; set; } // Default orchestrator address
+    public Uri ChatServerAddress { get; set; } // Default chat server address
+    public Guid AgentId { get; set; } = Guid.Empty; // Default agent ID
+    public string Context { get; set; } = string.Empty; // Default context for the session
+    public string Role { get; set; } = string.Empty; // Default role for the session
 }
