@@ -45,7 +45,7 @@ public class AgentController : ControllerBase
         try
         {
             var allowedEmails = _configuration["AgentService:AllowedServiceEmails"]?.Split(',') ?? Array.Empty<string>();
-            
+
             if (!_authService.IsAuthorized(allowedEmails))
             {
                 return Forbid("Service not authorized to access agent");
@@ -78,12 +78,12 @@ public class AgentController : ControllerBase
         try
         {
             var allowedEmails = _configuration["AgentService:AllowedServiceEmails"]?.Split(',') ?? Array.Empty<string>();
-            
+
             if (!_authService.IsAuthorized(allowedEmails))
             {
                 return Forbid("Service not authorized to create sessions");
-            }            
-            
+            }
+
             var createRequest = new CreateAgentSessionRequest
             {
                 RepositoryUrl = request.RepositoryUrl,
@@ -103,7 +103,7 @@ public class AgentController : ControllerBase
                 Status = agentSession.Status
             };
 
-            _logger.LogInformation("Created session {SessionId} for repository {Repository}", 
+            _logger.LogInformation("Created session {SessionId} for repository {Repository}",
                 agentSession.Id, request.RepositoryUrl);
 
             return Ok(response);
@@ -127,7 +127,7 @@ public class AgentController : ControllerBase
         try
         {
             var allowedEmails = _configuration["AgentService:AllowedServiceEmails"]?.Split(',') ?? Array.Empty<string>();
-            
+
             if (!_authService.IsAuthorized(allowedEmails))
             {
                 return Forbid("Service not authorized to access sessions");
