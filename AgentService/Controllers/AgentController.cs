@@ -70,8 +70,8 @@ public class AgentController : ControllerBase
             return StatusCode(500, "Internal server error");
         }
     }    /// <summary>
-    /// Create a new agent session
-    /// </summary>
+         /// Create a new agent session
+         /// </summary>
     [HttpPost("session")]
     public async Task<IActionResult> CreateSession([FromBody] CreateSessionRequest request)
     {
@@ -118,7 +118,9 @@ public class AgentController : ControllerBase
             _logger.LogError(ex, "Error creating session for repository {Repository}", request.RepositoryUrl);
             return StatusCode(500, "Internal server error");
         }
-    }    /// <summary>
+    }
+
+    /// <summary>
     /// Get agent session information
     /// </summary>
     [HttpGet("session/{sessionId}")]
