@@ -24,6 +24,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ai_instructions_modules", "
 		ai_instruction_modules\ai-testing-validation.md = ai_instruction_modules\ai-testing-validation.md
 		ai_instruction_modules\ai-tools-config.md = ai_instruction_modules\ai-tools-config.md
 		ai_instruction_modules\ai-workflow-config.md = ai_instruction_modules\ai-workflow-config.md
+		ai_instruction_modules\ai-task-based-workflow.md = ai_instruction_modules\ai-task-based-workflow.md
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{9C6578E7-E4FE-79BB-1635-F363CC1E80DD}"
