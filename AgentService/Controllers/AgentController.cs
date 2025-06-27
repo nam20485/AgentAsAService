@@ -20,16 +20,20 @@ public class AgentController : ControllerBase
     private readonly ILogger<AgentController> _logger;
     private readonly IConfiguration _configuration;
 
+    private readonly IAgentSessionProviderService _agentSessionProviderService;
+
     public AgentController(
         IServiceAuthenticationService authService,
         IAgentSessionStore agentSessionStore,
         ILogger<AgentController> logger,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        IAgentSessionProviderService agentSessionProviderService)
     {
         _authService = authService;
         _agentSessionStore = agentSessionStore;
         _logger = logger;
         _configuration = configuration;
+        _agentSessionProviderService = agentSessionProviderService;
     }
 
     /// <summary>
@@ -41,7 +45,7 @@ public class AgentController : ControllerBase
         try
         {
             var allowedEmails = _configuration["AgentService:AllowedServiceEmails"]?.Split(',') ?? Array.Empty<string>();
-            
+
             if (!_authService.IsAuthorized(allowedEmails))
             {
                 return Forbid("Service not authorized to access agent");
@@ -66,19 +70,21 @@ public class AgentController : ControllerBase
             return StatusCode(500, "Internal server error");
         }
     }    /// <summary>
-    /// Create a new agent session
-    /// </summary>
+         /// Create a new agent session
+         /// </summary>
     [HttpPost("session")]
     public async Task<IActionResult> CreateSession([FromBody] CreateSessionRequest request)
     {
         try
         {
             var allowedEmails = _configuration["AgentService:AllowedServiceEmails"]?.Split(',') ?? Array.Empty<string>();
-            
+
             if (!_authService.IsAuthorized(allowedEmails))
             {
                 return Forbid("Service not authorized to create sessions");
-            }            var createRequest = new CreateAgentSessionRequest
+            }
+
+            var createRequest = new CreateAgentSessionRequest
             {
                 RepositoryUrl = request.RepositoryUrl,
                 Branch = request.Branch,
@@ -97,7 +103,7 @@ public class AgentController : ControllerBase
                 Status = agentSession.Status
             };
 
-            _logger.LogInformation("Created session {SessionId} for repository {Repository}", 
+            _logger.LogInformation("Created session {SessionId} for repository {Repository}",
                 agentSession.Id, request.RepositoryUrl);
 
             return Ok(response);
@@ -112,7 +118,9 @@ public class AgentController : ControllerBase
             _logger.LogError(ex, "Error creating session for repository {Repository}", request.RepositoryUrl);
             return StatusCode(500, "Internal server error");
         }
-    }    /// <summary>
+    }
+
+    /// <summary>
     /// Get agent session information
     /// </summary>
     [HttpGet("session/{sessionId}")]
@@ -121,7 +129,7 @@ public class AgentController : ControllerBase
         try
         {
             var allowedEmails = _configuration["AgentService:AllowedServiceEmails"]?.Split(',') ?? Array.Empty<string>();
-            
+
             if (!_authService.IsAuthorized(allowedEmails))
             {
                 return Forbid("Service not authorized to access sessions");

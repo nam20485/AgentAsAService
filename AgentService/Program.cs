@@ -32,6 +32,7 @@ internal class Program
 
         builder.Services.AddControllers();
         builder.Services.AddEndpointsApiExplorer();
+        builder.Services.AddHttpContextAccessor();
         builder.Services.AddSwaggerGen(c =>
         {
             c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo 
@@ -65,7 +66,7 @@ internal class Program
                 }
             });
         });
-        builder.Services.AddHttpContextAccessor();
+        
           // Add health checks
         builder.Services.AddHealthChecks()
             .AddCheck("self", () => HealthCheckResult.Healthy("AgentService is running"), tags: new[] { "ready", "live" })            .AddCheck("firestore", () =>
@@ -102,6 +103,9 @@ internal class Program
 
         // Add document store services for AgentSession management
         builder.Services.AddDocumentStore(builder.Configuration);
+
+        // add AgentSession Provider
+        builder.Services.AddScoped<IAgentSessionProviderService, CdktfSessionProvider>();
 
         // Add Google Cloud Firestore (legacy - still needed for health checks)
         builder.Services.AddSingleton(provider =>
