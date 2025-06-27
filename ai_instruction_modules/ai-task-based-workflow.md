@@ -8,7 +8,9 @@ For all non-trivial sized tasks you will complete the following process as you w
 
 ### Task Workflow Steps
 
-1. After determining plan for implementation, create new GH issue and outline steps there. For each step of the task create a short few sentences that describe the step and a checkbox.
+0. Before making a plan, review the current state of the workspace/codebase. Especially in the area where you will be implementing your new task(s). Check for previous progress on this task- have you already been working on this task? Does there already exist a branch and/or an issue? If so, inspect the changes in the issue and/or branch to see what you have already accomplished. When you present your plan, include a review of the current status.
+
+1. After determining plan for implementation, create new GH issue and outline steps there. For each step of the task create a short few sentences that describe the step and a checkbox. The more detailed, the better. It is better to have many small steps than a few large ones.
 1. Include a short paragraph in the body as a description. Outline what you intend to change, how you intend to change it, the outcome, and why.
 1. Print copy of issue in your display and ask user if they would like to view the issue in the browser.
 1. Ask user if the issue plan is acceptable. If not iterate until it is.
