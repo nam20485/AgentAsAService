@@ -5,7 +5,6 @@
 @using SharedLib.DTOs
 @inject HttpClient Http
 @inject NavigationManager Navigation
-@inject NavigationManager Navigation
 
 <PageTitle>Projects - Agent as a Service</PageTitle>
 
@@ -54,7 +53,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach (var project in projects)
+                                        @foreach (var project in projects)
                                     {
                                         <tr>
                                             <td><strong>@project.Name</strong></td>
@@ -244,5 +243,12 @@
         {
             createMessage = $"Error deleting project: {ex.Message}";
             createSuccess = false;
-        }    }
+        }
+    }
+
+    private List<BreadcrumbNavigation.BreadcrumbItem> breadcrumbItems = new()
+    {
+        new BreadcrumbNavigation.BreadcrumbItem("Home", "/"),
+        new BreadcrumbNavigation.BreadcrumbItem("Projects", "", true)
+    };
 }
