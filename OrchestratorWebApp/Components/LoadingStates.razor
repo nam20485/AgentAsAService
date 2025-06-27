@@ -1,0 +1,181 @@
+@* Loading States Component *@
+
+@if (IsLoading)
+{
+    <div class="loading-container @ContainerClass">
+        @if (Type == LoadingType.Spinner)
+        {
+            <div class="text-center">
+                <div class="spinner-border @SpinnerClass" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                @if (!string.IsNullOrEmpty(Message))
+                {
+                    <p class="loading-message mt-2">@Message</p>
+                }
+            </div>
+        }
+        else if (Type == LoadingType.Skeleton)
+        {
+            <div class="skeleton-loading">
+                @for (int i = 0; i < SkeletonLines; i++)
+                {
+                    <div class="skeleton-line @(i == SkeletonLines - 1 ? "skeleton-line-last" : "")"></div>
+                }
+            </div>
+        }
+        else if (Type == LoadingType.Dots)
+        {
+            <div class="text-center">
+                <div class="loading-dots">
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                </div>
+                @if (!string.IsNullOrEmpty(Message))
+                {
+                    <p class="loading-message mt-2">@Message</p>
+                }
+            </div>
+        }
+        else if (Type == LoadingType.Progress)
+        {
+            <div class="progress-loading">
+                @if (!string.IsNullOrEmpty(Message))
+                {
+                    <p class="loading-message mb-2">@Message</p>
+                }
+                <div class="progress">
+                    <div class="progress-bar progress-bar-animated progress-bar-striped" 
+                         style="width: @(Progress)%" 
+                         aria-valuenow="@Progress" 
+                         aria-valuemin="0" 
+                         aria-valuemax="100">
+                        @if (ShowProgressText)
+                        {
+                            @($"{Progress}%")
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+<style>
+    .loading-container {
+        padding: var(--spacing-4);
+    }
+    
+    .loading-message {
+        color: var(--color-secondary-600);
+        font-size: var(--font-size-sm);
+        margin: 0;
+    }
+    
+    [data-theme="dark"] .loading-message {
+        color: var(--color-secondary-400);
+    }
+    
+    /* Skeleton Loading */
+    .skeleton-loading {
+        padding: var(--spacing-4);
+    }
+    
+    .skeleton-line {
+        height: 1rem;
+        background: linear-gradient(90deg, var(--color-secondary-200) 25%, var(--color-secondary-100) 50%, var(--color-secondary-200) 75%);
+        background-size: 200% 100%;
+        animation: skeleton-loading 1.5s infinite;
+        border-radius: var(--border-radius-sm);
+        margin-bottom: var(--spacing-2);
+    }
+    
+    .skeleton-line-last {
+        width: 60%;
+        margin-bottom: 0;
+    }
+    
+    [data-theme="dark"] .skeleton-line {
+        background: linear-gradient(90deg, var(--color-secondary-700) 25%, var(--color-secondary-600) 50%, var(--color-secondary-700) 75%);
+        background-size: 200% 100%;
+    }
+    
+    @@keyframes skeleton-loading {
+        0% {
+            background-position: 200% 0;
+        }
+        100% {
+            background-position: -200% 0;
+        }
+    }
+    
+    /* Dots Loading */
+    .loading-dots {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: var(--spacing-2);
+    }
+    
+    .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background-color: var(--color-primary-600);
+        animation: dots-loading 1.4s infinite ease-in-out both;
+    }
+    
+    .dot:nth-child(1) { animation-delay: -0.32s; }
+    .dot:nth-child(2) { animation-delay: -0.16s; }
+    .dot:nth-child(3) { animation-delay: 0s; }
+    
+    @@keyframes dots-loading {
+        0%, 80%, 100% {
+            transform: scale(0);
+        }
+        40% {
+            transform: scale(1);
+        }
+    }
+    
+    /* Progress Loading */
+    .progress-loading {
+        width: 100%;
+    }
+    
+    .progress {
+        height: 8px;
+        background-color: var(--color-secondary-200);
+        border-radius: var(--border-radius-sm);
+        overflow: hidden;
+    }
+    
+    [data-theme="dark"] .progress {
+        background-color: var(--color-secondary-700);
+    }
+    
+    .progress-bar {
+        background-color: var(--color-primary-600);
+        transition: width var(--transition-normal);
+    }
+</style>
+
+@code {
+    [Parameter] public bool IsLoading { get; set; } = true;
+    [Parameter] public LoadingType Type { get; set; } = LoadingType.Spinner;
+    [Parameter] public string Message { get; set; } = "";
+    [Parameter] public string ContainerClass { get; set; } = "";
+    [Parameter] public string SpinnerClass { get; set; } = "";
+    [Parameter] public int SkeletonLines { get; set; } = 3;
+    [Parameter] public int Progress { get; set; } = 0;
+    [Parameter] public bool ShowProgressText { get; set; } = true;
+
+    public enum LoadingType
+    {
+        Spinner,
+        Skeleton,
+        Dots,
+        Progress
+    }
+}
