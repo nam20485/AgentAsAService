@@ -76,7 +76,8 @@ namespace OrchestratorService.Controllers
                         Name = savedProject.Team.Name,
                         MemberCount = savedProject.Team.Members.Count
                     },
-                    CreatedAt = savedProject.CreatedAt
+                    CreatedAt = savedProject.CreatedAt,
+                    Status = savedProject.Status.ToString()
                 };
 
                 return CreatedAtAction(nameof(GetProject), new { id = savedProject.Id }, response);
@@ -118,7 +119,8 @@ namespace OrchestratorService.Controllers
                         Name = p.Team.Name,
                         MemberCount = p.Team.Members.Count
                     },
-                    CreatedAt = p.CreatedAt
+                    CreatedAt = p.CreatedAt,
+                    Status = p.Status.ToString()
                 }).ToList();
 
                 return Ok(responses);
@@ -160,7 +162,8 @@ namespace OrchestratorService.Controllers
                         Name = project.Team.Name,
                         MemberCount = project.Team.Members.Count
                     },
-                    CreatedAt = project.CreatedAt
+                    CreatedAt = project.CreatedAt,
+                    Status = project.Status.ToString()
                 };
 
                 return Ok(response);

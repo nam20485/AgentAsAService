@@ -29,6 +29,7 @@ public class ProjectResponse
     public RepositoryInfo Repository { get; set; } = new RepositoryInfo();
     public TeamInfo Team { get; set; } = new TeamInfo();
     public DateTime CreatedAt { get; set; }
+    public string Status { get; set; } = string.Empty;
 }
 
 public class RepositoryInfo

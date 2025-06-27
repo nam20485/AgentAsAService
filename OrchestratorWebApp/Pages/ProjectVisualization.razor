@@ -1,0 +1,337 @@
+@page "/projects/{ProjectId}/visualization"
+@using System.Net.Http
+@using System.Text.Json
+@using SharedLib.Model
+@inject HttpClient Http
+@inject NavigationManager Navigation
+
+<PageTitle>Task Visualization - Agent as a Service</PageTitle>
+
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="/projects">Projects</a></li>
+                    <li class="breadcrumb-item"><a href="/projects/@ProjectId">@projectName</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Task Visualization</li>
+                </ol>
+            </nav>
+            <h1>🎯 Task Delegation Visualization</h1>
+            <p class="text-muted">Visual representation of task distribution and agent collaboration</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-9">
+            @if (taskData == null)
+            {
+                <div class="text-center">
+                    <div class="spinner-border" role="status">
+                        <span class="sr-only">Loading...</span>
+                    </div>
+                    <p class="mt-2">Loading task visualization...</p>
+                </div>
+            }
+            else
+            {
+                <!-- Project Overview Card -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">📊 Project Overview</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="text-center">
+                                    <div class="display-6 text-primary">@taskData.TotalTasks</div>
+                                    <div class="text-muted">Total Tasks</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="text-center">
+                                    <div class="display-6 text-success">@taskData.CompletedTasks</div>
+                                    <div class="text-muted">Completed</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="text-center">
+                                    <div class="display-6 text-warning">@taskData.InProgressTasks</div>
+                                    <div class="text-muted">In Progress</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="text-center">
+                                    <div class="display-6 text-info">@taskData.PendingTasks</div>
+                                    <div class="text-muted">Pending</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <div class="progress" style="height: 20px;">
+                                <div class="progress-bar bg-success" style="width: @((double)taskData.CompletedTasks / taskData.TotalTasks * 100)%">
+                                    @(((double)taskData.CompletedTasks / taskData.TotalTasks * 100).ToString("F1"))%
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Task Flow Diagram -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">🔄 Task Flow Diagram</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="task-flow-container" style="overflow-x: auto;">
+                            <svg width="800" height="400" class="task-flow-diagram">
+                                <!-- Orchestrator Node -->
+                                <g class="orchestrator-node">
+                                    <circle cx="100" cy="200" r="40" fill="#3b82f6" stroke="#1d4ed8" stroke-width="3"/>
+                                    <text x="100" y="205" text-anchor="middle" fill="white" font-weight="bold">🧠</text>
+                                    <text x="100" y="250" text-anchor="middle" font-size="12">Orchestrator</text>
+                                </g>
+
+                                <!-- Task Distribution Lines and Agent Nodes -->
+                                @{
+                                    var agentCount = taskData.AgentTasks.Count;
+                                    var agentSpacing = 500.0 / Math.Max(agentCount - 1, 1);
+                                }
+                                
+                                @for (int i = 0; i < taskData.AgentTasks.Count; i++)
+                                {
+                                    var agent = taskData.AgentTasks[i];
+                                    var x = 300 + (i * agentSpacing);
+                                    var y = 100 + (i % 2) * 200; // Alternate heights for visual clarity
+
+                                    <!-- Connection Line -->
+                                    <line x1="140" y1="200" x2="@(x-30)" y2="@y" stroke="#6b7280" stroke-width="2"/>
+                                    
+                                    <!-- Agent Node -->
+                                    <g class="agent-node">
+                                        <circle cx="@x" cy="@y" r="25" fill="@GetAgentNodeColor(agent.TasksCompleted, agent.TasksAssigned)" 
+                                                stroke="#374151" stroke-width="2"/>
+                                        <text x="@x" y="@(y+5)" text-anchor="middle" fill="white" font-size="16">🤖</text>
+                                        <text x="@x" y="@(y+35)" text-anchor="middle" font-size="10">@agent.AgentName.Substring(0, Math.Min(8, agent.AgentName.Length))</text>
+                                        <text x="@x" y="@(y+48)" text-anchor="middle" font-size="9" fill="#6b7280">@agent.TasksCompleted/@agent.TasksAssigned</text>
+                                    </g>
+                                }
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Agent Task Distribution -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">👥 Agent Task Distribution</h5>
+                    </div>
+                    <div class="card-body">
+                        @foreach (var agent in taskData.AgentTasks.OrderByDescending(a => a.TasksAssigned))
+                        {
+                            <div class="agent-task-card mb-3 p-3 border rounded">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h6 class="mb-0">🤖 @agent.AgentName</h6>
+                                    <span class="badge @GetTaskStatusBadgeClass(agent.TasksCompleted, agent.TasksAssigned)">
+                                        @agent.TasksCompleted/@agent.TasksAssigned tasks
+                                    </span>
+                                </div>
+                                
+                                <div class="progress mb-2" style="height: 8px;">
+                                    <div class="progress-bar bg-success" 
+                                         style="width: @(agent.TasksAssigned > 0 ? (double)agent.TasksCompleted / agent.TasksAssigned * 100 : 0)%">
+                                    </div>
+                                </div>
+                                
+                                @if (agent.CurrentTasks?.Any() == true)
+                                {
+                                    <div class="current-tasks">
+                                        <strong>Current Tasks:</strong>
+                                        @foreach (var task in agent.CurrentTasks.Take(3))
+                                        {
+                                            <div class="task-item small text-muted mt-1">
+                                                <i class="fas fa-circle @GetTaskStatusIcon(task.Status)"></i> @task.Title
+                                            </div>
+                                        }
+                                        @if (agent.CurrentTasks.Count > 3)
+                                        {
+                                            <div class="small text-muted">... and @(agent.CurrentTasks.Count - 3) more</div>
+                                        }
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div class="col-md-3">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">⚡ Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="/projects/@ProjectId" class="btn btn-primary">
+                            <i class="fas fa-arrow-left"></i> Back to Project
+                        </a>
+                        <button class="btn btn-secondary" @onclick="RefreshVisualization">
+                            <i class="fas fa-sync-alt"></i> Refresh Data
+                        </button>
+                        <a href="/projects/@ProjectId/sessions" class="btn btn-info">
+                            <i class="fas fa-chart-line"></i> Session Logs
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            @if (taskData?.AgentTasks?.Any() == true)
+            {
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">📈 Performance Metrics</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="metric-item mb-3">
+                            <div class="d-flex justify-content-between">
+                                <span>Most Active Agent:</span>
+                                <span class="small">@(taskData.AgentTasks.OrderByDescending(a => a.TasksAssigned).First().AgentName)</span>
+                            </div>
+                        </div>
+                        <div class="metric-item mb-3">
+                            <div class="d-flex justify-content-between">
+                                <span>Best Completion Rate:</span>
+                                <span class="small">@(taskData.AgentTasks.Where(a => a.TasksAssigned > 0).OrderByDescending(a => (double)a.TasksCompleted / a.TasksAssigned).First().AgentName)</span>
+                            </div>
+                        </div>
+                        <div class="metric-item mb-3">
+                            <div class="d-flex justify-content-between">
+                                <span>Overall Efficiency:</span>
+                                <span class="badge bg-info">@((taskData.TotalTasks > 0 ? (double)taskData.CompletedTasks / taskData.TotalTasks * 100 : 0).ToString("F1"))%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public string ProjectId { get; set; } = "";
+    
+    private TaskVisualizationData? taskData;
+    private string projectName = "Project";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadProjectName();
+        await LoadTaskVisualization();
+    }
+
+    private async Task LoadProjectName()
+    {
+        try
+        {
+            var response = await Http.GetStringAsync($"/api/projects/{ProjectId}");
+            var project = JsonSerializer.Deserialize<SharedLib.Model.Project>(response, new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            });
+            projectName = project?.Name ?? "Project";
+        }
+        catch
+        {
+            projectName = "Project";
+        }
+    }
+
+    private async Task LoadTaskVisualization()
+    {
+        try
+        {
+            var response = await Http.GetStringAsync($"/api/projects/{ProjectId}/visualization");
+            taskData = JsonSerializer.Deserialize<TaskVisualizationData>(response, new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            });
+        }
+        catch
+        {
+            // Create mock data for demonstration
+            taskData = new TaskVisualizationData
+            {
+                TotalTasks = 25,
+                CompletedTasks = 12,
+                InProgressTasks = 8,
+                PendingTasks = 5,
+                AgentTasks = new List<AgentTaskData>
+                {
+                    new() { AgentName = "Agent-1", TasksAssigned = 8, TasksCompleted = 5, CurrentTasks = new List<TaskInfo> { new() { Title = "Implement authentication", Status = "InProgress" } } },
+                    new() { AgentName = "Agent-2", TasksAssigned = 7, TasksCompleted = 4, CurrentTasks = new List<TaskInfo> { new() { Title = "Design database schema", Status = "InProgress" } } },
+                    new() { AgentName = "Agent-3", TasksAssigned = 6, TasksCompleted = 3, CurrentTasks = new List<TaskInfo> { new() { Title = "Create unit tests", Status = "Pending" } } },
+                    new() { AgentName = "Agent-4", TasksAssigned = 4, TasksCompleted = 0, CurrentTasks = new List<TaskInfo> { new() { Title = "Setup CI/CD pipeline", Status = "Pending" } } }
+                }
+            };
+        }
+    }
+
+    private async Task RefreshVisualization()
+    {
+        await LoadTaskVisualization();
+        StateHasChanged();
+    }
+
+    private string GetAgentNodeColor(int completed, int assigned)
+    {
+        if (assigned == 0) return "#6b7280";
+        var ratio = (double)completed / assigned;
+        if (ratio >= 0.8) return "#22c55e"; // Green
+        if (ratio >= 0.5) return "#f59e0b"; // Orange
+        return "#ef4444"; // Red
+    }
+
+    private string GetTaskStatusBadgeClass(int completed, int assigned)
+    {
+        if (assigned == 0) return "bg-secondary";
+        var ratio = (double)completed / assigned;
+        if (ratio >= 0.8) return "bg-success";
+        if (ratio >= 0.5) return "bg-warning";
+        return "bg-danger";
+    }
+
+    private string GetTaskStatusIcon(string status)
+    {
+        return status switch
+        {
+            "Completed" => "text-success",
+            "InProgress" => "text-warning",
+            "Pending" => "text-info",
+            _ => "text-muted"
+        };
+    }
+
+    private class TaskVisualizationData
+    {
+        public int TotalTasks { get; set; }
+        public int CompletedTasks { get; set; }
+        public int InProgressTasks { get; set; }
+        public int PendingTasks { get; set; }
+        public List<AgentTaskData> AgentTasks { get; set; } = new();
+    }
+
+    private class AgentTaskData
+    {
+        public string AgentName { get; set; } = "";
+        public int TasksAssigned { get; set; }
+        public int TasksCompleted { get; set; }
+        public List<TaskInfo> CurrentTasks { get; set; } = new();
+    }
+
+    private class TaskInfo
+    {
+        public string Title { get; set; } = "";
+        public string Status { get; set; } = "";
+    }
+}

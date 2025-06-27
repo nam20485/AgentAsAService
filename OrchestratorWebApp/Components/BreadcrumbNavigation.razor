@@ -1,0 +1,91 @@
+@* Breadcrumb Navigation Component *@
+
+<nav aria-label="breadcrumb" class="breadcrumb-nav">
+    <ol class="breadcrumb @AdditionalClasses">
+        @foreach (var item in Items)
+        {
+            <li class="breadcrumb-item @(item.IsActive ? "active" : "")">
+                @if (item.IsActive)
+                {
+                    @item.Text
+                }
+                else
+                {
+                    <a href="@item.Href" class="breadcrumb-link">@item.Text</a>
+                }
+            </li>
+        }
+    </ol>
+</nav>
+
+<style>
+    .breadcrumb-nav {
+        margin-bottom: 1rem;
+    }
+    
+    .breadcrumb {
+        background: var(--color-secondary-50);
+        border: 1px solid var(--color-secondary-200);
+        border-radius: var(--border-radius);
+        padding: var(--spacing-2) var(--spacing-4);
+    }
+    
+    [data-theme="dark"] .breadcrumb {
+        background: var(--color-secondary-800);
+        border-color: var(--color-secondary-700);
+    }
+    
+    .breadcrumb-link {
+        color: var(--color-primary-600);
+        text-decoration: none;
+        transition: color var(--transition-fast);
+    }
+    
+    .breadcrumb-link:hover {
+        color: var(--color-primary-700);
+        text-decoration: underline;
+    }
+    
+    [data-theme="dark"] .breadcrumb-link {
+        color: var(--color-primary-400);
+    }
+    
+    [data-theme="dark"] .breadcrumb-link:hover {
+        color: var(--color-primary-300);
+    }
+    
+    .breadcrumb-item.active {
+        color: var(--color-secondary-600);
+    }
+    
+    [data-theme="dark"] .breadcrumb-item.active {
+        color: var(--color-secondary-300);
+    }
+</style>
+
+@code {
+    [Parameter] public List<BreadcrumbItem> Items { get; set; } = new();
+    [Parameter] public string AdditionalClasses { get; set; } = "";
+
+    public class BreadcrumbItem
+    {
+        public string Text { get; set; } = "";
+        public string Href { get; set; } = "";
+        public bool IsActive { get; set; }
+        
+        public BreadcrumbItem(string text, string href = "", bool isActive = false)
+        {
+            Text = text;
+            Href = href;
+            IsActive = isActive;
+        }
+    }
+
+    /// <summary>
+    /// Helper method to create breadcrumb items easily
+    /// </summary>
+    public static List<BreadcrumbItem> Create(params (string text, string href, bool isActive)[] items)
+    {
+        return items.Select(item => new BreadcrumbItem(item.text, item.href, item.isActive)).ToList();
+    }
+}
