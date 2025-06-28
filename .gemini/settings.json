@@ -42,11 +42,13 @@
       "args": [],
       "env": {}
     },
-    "firebase": {
+    "firebase-cli": {
       "type": "stdio",
       "command": "firebase",
       "args": [],
-      "env": {}
+      "env": {
+        "FIREBASE_PROJECT": "agentasaservice-dev"
+      }
     },
     "git": {
       "type": "stdio",
@@ -91,17 +93,17 @@
         "$USERPROFILE"
       ]
     },
-    // "powershell": {
-    //   "type": "stdio",
-    //   "command": "pwsh.exe",
-    //   "args": [
-    //     "-NoLogo",
-    //     "-NoProfile",
-    //     "-Command",
-    //     "-"
-    //   ],
-    //   "env": {}
-    // }
+    "powershell": {
+      "type": "stdio",
+      "command": "pwsh.exe",
+      "args": [
+        "-NoLogo",
+        "-NoProfile",
+        "-Command",
+        "-"
+      ],
+      "env": {}
+    },
     "github-cli": {
       "type": "stdio",
       "command": "gh",
@@ -141,6 +143,30 @@
         "@executeautomation/playwright-mcp-server"
       ],
       "env": {}
+    },
+    "microsoft-docs": {
+      "id": "microsoft-docs",
+      "name": "microsoft-docs",
+      "version": "0.0.1",
+      "type": "http",
+      "url": "https://learn.microsoft.com/api/mcp"
+    },
+    "context7": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@upstash/context7-mcp@latest"
+      ]
+    },
+    "web-browser": {
+      "type": "stdio",
+      "command": "uv",
+      "args": [
+        "tool",
+        "run",
+        "web-browser-mcp-server"
+      ]
     }
   },
   "inputs": [
