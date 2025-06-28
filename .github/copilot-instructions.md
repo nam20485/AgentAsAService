@@ -37,6 +37,7 @@ Any (uncommented) file linked below should be read in fully and considered a par
 [ai-current-task.md](../ai_instruction_modules/ai-current-task.md)
 [ai-task-based-workflow.md](../ai_instruction_modules/ai-task-based-workflow.md)
 [ai-workflow-roles.md](../ai_instruction_modules/ai-workflow-roles.md)
+[ai-workflow-assignments.md](../ai_instruction_modules/ai-workflow-assignments.md)
 <!--
 [ai-retrospective-evolving-memory.md](../ai_instruction_modules/ai-retrospective-evolving-memory.md)
 [ai-deployment-process.md](/ai_instruction_modules/ai-deployment-process.md)
