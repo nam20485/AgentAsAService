@@ -11,4 +11,5 @@ public class Project
     public Team Team { get; set; } = new Team();
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+    public ProjectStatus Status { get; set; } = ProjectStatus.Unconfigured;
 }

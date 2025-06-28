@@ -1,0 +1,338 @@
+@page "/projects/{ProjectId}/sessions"
+@using System.Net.Http
+@using System.Text.Json
+@using SharedLib.Model
+@inject HttpClient Http
+@inject NavigationManager Navigation
+
+<PageTitle>Session Logs - Agent as a Service</PageTitle>
+
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="/projects">Projects</a></li>
+                    <li class="breadcrumb-item"><a href="/projects/@ProjectId">@projectName</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Session Logs</li>
+                </ol>
+            </nav>
+            <h1>📊 Session Logs</h1>
+            <p class="text-muted">Real-time monitoring of agent sessions and task progress</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            @if (sessions == null)
+            {
+                <div class="text-center">
+                    <div class="spinner-border" role="status">
+                        <span class="sr-only">Loading...</span>
+                    </div>
+                    <p class="mt-2">Loading session logs...</p>
+                </div>
+            }
+            else if (sessions.Count == 0)
+            {
+                <div class="card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-clipboard-list fa-3x text-muted mb-3"></i>
+                        <h5>No Session Logs Found</h5>
+                        <p class="text-muted">No agent sessions have been started for this project yet.</p>
+                        <a href="/projects/@ProjectId" class="btn btn-primary">Back to Project</a>
+                    </div>
+                </div>
+            }
+            else
+            {
+                @foreach (var session in sessions.OrderByDescending(s => s.StartTime))
+                {
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">🤖 @session.AgentName</h5>
+                                <span class="badge @GetSessionStatusBadgeClass(session.Status)">@session.Status</span>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <strong>Session ID:</strong> <code>@session.Id</code><br>
+                                    <strong>Started:</strong> @session.StartTime.ToString("yyyy-MM-dd HH:mm:ss")<br>
+                                    @if (session.EndTime.HasValue)
+                                    {
+                                        <strong>Ended:</strong> @session.EndTime.Value.ToString("yyyy-MM-dd HH:mm:ss")<br>
+                                        <strong>Duration:</strong> @((session.EndTime.Value - session.StartTime).ToString(@"hh\:mm\:ss"))
+                                    }
+                                    else
+                                    {
+                                        <strong>Duration:</strong> @((DateTime.UtcNow - session.StartTime).ToString(@"hh\:mm\:ss"))
+                                    }
+                                </div>
+                                <div class="col-md-6">
+                                    @if (!string.IsNullOrEmpty(session.CurrentTask))
+                                    {
+                                        <strong>Current Task:</strong><br>
+                                        <div class="alert alert-info py-2">@session.CurrentTask</div>
+                                    }
+                                    <div class="progress mb-2">
+                                        <div class="progress-bar @GetProgressBarClass(session.Status)" 
+                                             style="width: @(session.Progress)%"
+                                             aria-valuenow="@session.Progress" aria-valuemin="0" aria-valuemax="100">
+                                            @session.Progress%
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            @if (session.Logs?.Any() == true)
+                            {
+                                <h6>📝 Recent Activity</h6>
+                                <div class="session-logs" style="max-height: 300px; overflow-y: auto;">
+                                    @foreach (var log in session.Logs.OrderByDescending(l => l.Timestamp).Take(20))
+                                    {
+                                        <div class="log-entry d-flex mb-2">
+                                            <div class="timestamp text-muted me-3" style="min-width: 80px; font-size: 0.85em;">
+                                                @log.Timestamp.ToString("HH:mm:ss")
+                                            </div>
+                                            <div class="log-level me-2">
+                                                <span class="badge @GetLogLevelClass(log.Level)">@log.Level</span>
+                                            </div>
+                                            <div class="log-message">@log.Message</div>
+                                        </div>
+                                    }
+                                </div>
+                                
+                                @if (session.Logs.Count > 20)
+                                {
+                                    <div class="text-center mt-2">
+                                        <button class="btn btn-sm btn-outline-secondary" @onclick="() => ShowAllLogs(session.Id)">
+                                            Show All @session.Logs.Count Logs
+                                        </button>
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <div class="text-muted">No activity logs available yet.</div>
+                            }
+                        </div>
+                        @if (session.Status == "Active")
+                        {
+                            <div class="card-footer">
+                                <button class="btn btn-sm btn-warning me-2" @onclick="() => PauseSession(session.Id)">
+                                    <i class="fas fa-pause"></i> Pause
+                                </button>
+                                <button class="btn btn-sm btn-danger" @onclick="() => StopSession(session.Id)">
+                                    <i class="fas fa-stop"></i> Stop
+                                </button>
+                            </div>
+                        }
+                    </div>
+                }
+            }
+        </div>
+
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">📈 Session Statistics</h5>
+                </div>
+                <div class="card-body">
+                    @if (sessions?.Any() == true)
+                    {
+                        <div class="stat-item mb-3">
+                            <div class="d-flex justify-content-between">
+                                <span>Active Sessions:</span>
+                                <span class="badge bg-success">@sessions.Count(s => s.Status == "Active")</span>
+                            </div>
+                        </div>
+                        <div class="stat-item mb-3">
+                            <div class="d-flex justify-content-between">
+                                <span>Paused Sessions:</span>
+                                <span class="badge bg-warning">@sessions.Count(s => s.Status == "Paused")</span>
+                            </div>
+                        </div>
+                        <div class="stat-item mb-3">
+                            <div class="d-flex justify-content-between">
+                                <span>Completed Sessions:</span>
+                                <span class="badge bg-info">@sessions.Count(s => s.Status == "Completed")</span>
+                            </div>
+                        </div>
+                        <div class="stat-item mb-3">
+                            <div class="d-flex justify-content-between">
+                                <span>Average Progress:</span>
+                                <span class="badge bg-primary">@(sessions.Average(s => s.Progress).ToString("F1"))%</span>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-muted">No session data available</div>
+                    }
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">⚡ Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="/projects/@ProjectId" class="btn btn-primary">
+                            <i class="fas fa-arrow-left"></i> Back to Project
+                        </a>
+                        <button class="btn btn-secondary" @onclick="RefreshLogs">
+                            <i class="fas fa-sync-alt"></i> Refresh Logs
+                        </button>
+                        <a href="/projects/@ProjectId/visualization" class="btn btn-info">
+                            <i class="fas fa-project-diagram"></i> Task Visualization
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public string ProjectId { get; set; } = "";
+    
+    private List<SessionDetail>? sessions;
+    private string projectName = "Project";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadProjectName();
+        await LoadSessions();
+    }
+
+    private async Task LoadProjectName()
+    {
+        try
+        {
+            var response = await Http.GetStringAsync($"/api/projects/{ProjectId}");
+            var project = JsonSerializer.Deserialize<SharedLib.Model.Project>(response, new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            });
+            projectName = project?.Name ?? "Project";
+        }
+        catch
+        {
+            projectName = "Project";
+        }
+    }
+
+    private async Task LoadSessions()
+    {
+        try
+        {
+            var response = await Http.GetStringAsync($"/api/projects/{ProjectId}/sessions/detailed");
+            sessions = JsonSerializer.Deserialize<List<SessionDetail>>(response, new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            }) ?? new List<SessionDetail>();
+        }
+        catch
+        {
+            sessions = new List<SessionDetail>();
+        }
+    }
+
+    private async Task RefreshLogs()
+    {
+        await LoadSessions();
+        StateHasChanged();
+    }
+
+    private async Task PauseSession(string sessionId)
+    {
+        try
+        {
+            await Http.PostAsync($"/api/sessions/{sessionId}/pause", null);
+            await LoadSessions();
+        }
+        catch
+        {
+            // Handle error
+        }
+    }
+
+    private async Task StopSession(string sessionId)
+    {
+        try
+        {
+            await Http.PostAsync($"/api/sessions/{sessionId}/stop", null);
+            await LoadSessions();
+        }
+        catch
+        {
+            // Handle error
+        }
+    }
+
+    private Task ShowAllLogs(string sessionId)
+    {
+        // Navigate to detailed log view
+        Navigation.NavigateTo($"/projects/{ProjectId}/sessions/{sessionId}/logs");
+        return Task.CompletedTask;
+    }
+
+    private string GetSessionStatusBadgeClass(string status)
+    {
+        return status switch
+        {
+            "Active" => "bg-success",
+            "Paused" => "bg-warning",
+            "Completed" => "bg-info",
+            "Error" => "bg-danger",
+            "Stopped" => "bg-secondary",
+            _ => "bg-light"
+        };
+    }
+
+    private string GetProgressBarClass(string status)
+    {
+        return status switch
+        {
+            "Active" => "bg-success",
+            "Paused" => "bg-warning",
+            "Completed" => "bg-info",
+            "Error" => "bg-danger",
+            _ => ""
+        };
+    }
+
+    private string GetLogLevelClass(string level)
+    {
+        return level switch
+        {
+            "Info" => "bg-info",
+            "Warning" => "bg-warning",
+            "Error" => "bg-danger",
+            "Debug" => "bg-secondary",
+            _ => "bg-light"
+        };
+    }
+
+    private class SessionDetail
+    {
+        public string Id { get; set; } = "";
+        public string AgentName { get; set; } = "";
+        public string Status { get; set; } = "";
+        public DateTime StartTime { get; set; }
+        public DateTime? EndTime { get; set; }
+        public string CurrentTask { get; set; } = "";
+        public double Progress { get; set; }
+        public List<LogEntry> Logs { get; set; } = new();
+    }
+
+    private class LogEntry
+    {
+        public DateTime Timestamp { get; set; }
+        public string Level { get; set; } = "";
+        public string Message { get; set; } = "";
+    }
+}

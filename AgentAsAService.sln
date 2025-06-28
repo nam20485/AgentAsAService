@@ -20,11 +20,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ai_instructions_modules", "
 		ai_instruction_modules\ai-local-environment.md = ai_instruction_modules\ai-local-environment.md
 		ai_instruction_modules\ai-quick-reference.md = ai_instruction_modules\ai-quick-reference.md
 		ai_instruction_modules\ai-retrospective-evolving-memory.md = ai_instruction_modules\ai-retrospective-evolving-memory.md
+		ai_instruction_modules\ai-task-based-workflow.md = ai_instruction_modules\ai-task-based-workflow.md
 		ai_instruction_modules\ai-terminal-management.md = ai_instruction_modules\ai-terminal-management.md
 		ai_instruction_modules\ai-testing-validation.md = ai_instruction_modules\ai-testing-validation.md
-		ai_instruction_modules\ai-tools-config (2).md = ai_instruction_modules\ai-tools-config (2).md
 		ai_instruction_modules\ai-tools-config.md = ai_instruction_modules\ai-tools-config.md
 		ai_instruction_modules\ai-workflow-config.md = ai_instruction_modules\ai-workflow-config.md
+		ai_instruction_modules\ai-task-based-workflow.md = ai_instruction_modules\ai-task-based-workflow.md
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{9C6578E7-E4FE-79BB-1635-F363CC1E80DD}"
@@ -34,6 +35,25 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{9C65
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CollaboratorService", "CollaboratorService\CollaboratorService.csproj", "{C1B060CD-1B19-4C79-BA15-4F76BB855F2D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".gemini", ".gemini", "{813D0D6F-55A3-B6D0-CD42-2BAFB8FD62F4}"
+	ProjectSection(SolutionItems) = preProject
+		.gemini\code-config.yaml = .gemini\code-config.yaml
+		.gemini\GEMINI.md = .gemini\GEMINI.md
+		.gemini\settings.json = .gemini\settings.json
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ai-workflow-roles", "ai-workflow-roles", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "orchestrator", "orchestrator", "{2623ADE3-3B43-4CE7-B418-8BAF7650C70E}"
+	ProjectSection(SolutionItems) = preProject
+		ai_instruction_modules\ai-workflow-roles\orchestrator\ai-workflow-role.md = ai_instruction_modules\ai-workflow-roles\orchestrator\ai-workflow-role.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "collaborator", "collaborator", "{C98000FD-ADD1-4720-8CA7-9698A027F963}"
+	ProjectSection(SolutionItems) = preProject
+		ai_instruction_modules\ai-workflow-roles\collaborator\ai-workflow-role.md = ai_instruction_modules\ai-workflow-roles\collaborator\ai-workflow-role.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -120,6 +140,11 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{02EA681E-C7D8-13C7-8484-4AC65E1B71E8} = {B7086302-1D0A-D58E-FE97-DE1108A1BF0C}
+		{2623ADE3-3B43-4CE7-B418-8BAF7650C70E} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{C98000FD-ADD1-4720-8CA7-9698A027F963} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {830F004B-89A8-43C1-98E5-A5AE0F3F1FB4}

@@ -113,22 +113,121 @@
             </div>
 
             <div class="col-md-4">
+                <!-- Project Status Card -->
                 <div class="card mb-4">
                     <div class="card-header">
-                        <h5 class="mb-0">🎯 Quick Actions</h5>
+                        <h5 class="mb-0">🎯 Project Status</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <strong>Current Status:</strong>
+                            <span class="badge @GetStatusBadgeClass(projectStatus) ms-2">@projectStatus</span>
+                        </div>
+                        
+                        @if (projectStatus == "Configured" || projectStatus == "Ready")
+                        {
+                            <div class="d-grid mb-2">
+                                <button class="btn btn-success" @onclick="StartProject" disabled="@isStartingProject">
+                                    @if (isStartingProject)
+                                    {
+                                        <span class="spinner-border spinner-border-sm me-2"></span>
+                                    }
+                                    <i class="fas fa-play"></i> Start Project
+                                </button>
+                            </div>
+                        }
+                        else if (projectStatus == "Running")
+                        {
+                            <div class="d-grid mb-2">
+                                <button class="btn btn-warning" @onclick="PauseProject" disabled="@isPausingProject">
+                                    @if (isPausingProject)
+                                    {
+                                        <span class="spinner-border spinner-border-sm me-2"></span>
+                                    }
+                                    <i class="fas fa-pause"></i> Pause Project
+                                </button>
+                            </div>
+                        }
+                        else if (projectStatus == "Paused")
+                        {
+                            <div class="d-grid mb-2">
+                                <button class="btn btn-success" @onclick="ResumeProject" disabled="@isResumingProject">
+                                    @if (isResumingProject)
+                                    {
+                                        <span class="spinner-border spinner-border-sm me-2"></span>
+                                    }
+                                    <i class="fas fa-play"></i> Resume Project
+                                </button>
+                            </div>
+                        }
+                        
+                        @if (projectStatus == "Running" || projectStatus == "Paused")
+                        {
+                            <div class="d-grid mb-2">
+                                <button class="btn btn-warning" @onclick="StopProject" disabled="@isStoppingProject">
+                                    @if (isStoppingProject)
+                                    {
+                                        <span class="spinner-border spinner-border-sm me-2"></span>
+                                    }
+                                    <i class="fas fa-stop"></i> Stop Project
+                                </button>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <!-- Real-time Session Monitoring -->
+                @if (projectStatus == "Running" && activeSessions.Any())
+                {
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">🔄 Active Sessions</h5>
+                        </div>
+                        <div class="card-body">
+                            @foreach (var session in activeSessions)
+                            {
+                                <div class="session-monitor mb-3 p-3 border rounded">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <strong>@session.AgentName</strong>
+                                        <span class="badge @GetSessionStatusBadgeClass(session.Status)">@session.Status</span>
+                                    </div>
+                                    <div class="small text-muted mb-2">
+                                        Started: @session.StartTime.ToString("HH:mm:ss")
+                                    </div>
+                                    @if (!string.IsNullOrEmpty(session.CurrentTask))
+                                    {
+                                        <div class="small">
+                                            <strong>Current Task:</strong> @session.CurrentTask
+                                        </div>
+                                    }
+                                    <div class="progress mt-2" style="height: 6px;">
+                                        <div class="progress-bar" style="width: @(session.Progress)%"></div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+
+                <!-- Quick Actions Card -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">⚡ Quick Actions</h5>
                     </div>
                     <div class="card-body">
                         <div class="d-grid gap-2">
                             <a href="/projects/@ProjectId/team" class="btn btn-primary">
                                 <i class="fas fa-users"></i> Manage Team
                             </a>
-                            <button class="btn btn-warning" @onclick="StopProject" disabled="@isStoppingProject">
-                                @if (isStoppingProject)
-                                {
-                                    <span class="spinner-border spinner-border-sm me-2"></span>
-                                }
-                                <i class="fas fa-stop"></i> Stop Project
-                            </button>
+                            @if (projectStatus == "Running")
+                            {
+                                <a href="/projects/@ProjectId/sessions" class="btn btn-info">
+                                    <i class="fas fa-chart-line"></i> View Session Logs
+                                </a>
+                                <a href="/projects/@ProjectId/visualization" class="btn btn-secondary">
+                                    <i class="fas fa-project-diagram"></i> Task Visualization
+                                </a>
+                            }
                             <button class="btn btn-danger" @onclick="DeleteProject" disabled="@isDeletingProject">
                                 @if (isDeletingProject)
                                 {
@@ -139,13 +238,6 @@
                         </div>
                     </div>
                 </div>
-
-                @if (!string.IsNullOrEmpty(actionMessage))
-                {
-                    <div class="alert @(actionSuccess ? "alert-success" : "alert-danger")" role="alert">
-                        @actionMessage
-                    </div>
-                }
             </div>
         </div>
     }
@@ -156,12 +248,19 @@
     private SharedLib.Model.Project? project;
     private bool isStoppingProject = false;
     private bool isDeletingProject = false;
+    private bool isStartingProject = false;
+    private bool isPausingProject = false;
+    private bool isResumingProject = false;
     private string actionMessage = "";
     private bool actionSuccess = false;
+    private string projectStatus = "Configured"; // Default status
+    private List<SessionInfo> activeSessions = new List<SessionInfo>();
 
     protected override async Task OnInitializedAsync()
     {
         await LoadProject();
+        await LoadProjectStatus();
+        await LoadActiveSessions();
     }
 
     private async Task LoadProject()
@@ -180,6 +279,71 @@
         }
     }
 
+    private async Task LoadProjectStatus()
+    {
+        try
+        {
+            var response = await Http.GetStringAsync($"/api/projects/{ProjectId}/status");
+            projectStatus = response.Trim('"'); // Remove quotes
+        }
+        catch (Exception)
+        {
+            projectStatus = "Error";
+        }
+    }
+
+    private async Task LoadActiveSessions()
+    {
+        try
+        {
+            var response = await Http.GetStringAsync($"/api/projects/{ProjectId}/sessions");
+            activeSessions = JsonSerializer.Deserialize<List<SessionInfo>>(response, new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            }) ?? new List<SessionInfo>();
+        }
+        catch (Exception)
+        {
+            activeSessions = new List<SessionInfo>();
+        }
+    }
+
+    private async Task StartProject()
+    {
+        if (project == null) return;
+
+        isStartingProject = true;
+        actionMessage = "";
+        StateHasChanged();
+
+        try
+        {
+            var response = await Http.PostAsync($"/api/projects/{ProjectId}/start", null);
+            if (response.IsSuccessStatusCode)
+            {
+                actionMessage = "Project started successfully!";
+                actionSuccess = true;
+                await LoadProjectStatus();
+            }
+            else
+            {
+                var responseContent = await response.Content.ReadAsStringAsync();
+                actionMessage = $"Failed to start project: {responseContent}";
+                actionSuccess = false;
+            }
+        }
+        catch (Exception ex)
+        {
+            actionMessage = $"Error starting project: {ex.Message}";
+            actionSuccess = false;
+        }
+        finally
+        {
+            isStartingProject = false;
+            StateHasChanged();
+        }
+    }
+
     private async Task StopProject()
     {
         if (project == null) return;
@@ -195,6 +359,7 @@
             {
                 actionMessage = "Project stopped successfully!";
                 actionSuccess = true;
+                await LoadProjectStatus();
             }
             else
             {
@@ -284,5 +449,112 @@
         // In a real application, you'd use a proper modal dialog
         // For now, we'll use browser confirm
         return await Task.FromResult(true); // Simplified for this implementation
+    }
+
+    private string GetStatusBadgeClass(string status)
+    {
+        return status switch
+        {
+            "Running" => "bg-success",
+            "Paused" => "bg-warning",
+            "Stopped" => "bg-danger",
+            "Configured" => "bg-info",
+            "Ready" => "bg-primary",
+            "Error" => "bg-secondary",
+            _ => "bg-light"
+        };
+    }
+
+    private string GetSessionStatusBadgeClass(string status)
+    {
+        return status switch
+        {
+            "Active" => "bg-success",
+            "Paused" => "bg-warning",
+            "Stopped" => "bg-danger",
+            "Error" => "bg-secondary",
+            _ => "bg-light"
+        };
+    }
+
+    private class SessionInfo
+    {
+        public string AgentName { get; set; } = "";
+        public string Status { get; set; } = "";
+        public DateTime StartTime { get; set; }
+        public string CurrentTask { get; set; } = "";
+        public double Progress { get; set; }
+    }
+
+    private async Task PauseProject()
+    {
+        if (project == null) return;
+
+        isPausingProject = true;
+        actionMessage = "";
+        StateHasChanged();
+
+        try
+        {
+            var response = await Http.PostAsync($"/api/projects/{ProjectId}/pause", null);
+            if (response.IsSuccessStatusCode)
+            {
+                actionMessage = "Project paused successfully!";
+                actionSuccess = true;
+                await LoadProjectStatus();
+            }
+            else
+            {
+                var responseContent = await response.Content.ReadAsStringAsync();
+                actionMessage = $"Failed to pause project: {responseContent}";
+                actionSuccess = false;
+            }
+        }
+        catch (Exception ex)
+        {
+            actionMessage = $"Error pausing project: {ex.Message}";
+            actionSuccess = false;
+        }
+        finally
+        {
+            isPausingProject = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task ResumeProject()
+    {
+        if (project == null) return;
+
+        isResumingProject = true;
+        actionMessage = "";
+        StateHasChanged();
+
+        try
+        {
+            var response = await Http.PostAsync($"/api/projects/{ProjectId}/resume", null);
+            if (response.IsSuccessStatusCode)
+            {
+                actionMessage = "Project resumed successfully!";
+                actionSuccess = true;
+                await LoadProjectStatus();
+            }
+            else
+            {
+                var responseContent = await response.Content.ReadAsStringAsync();
+                actionMessage = $"Failed to resume project: {responseContent}";
+                actionSuccess = false;
+            }
+        }
+        catch (Exception ex)
+        {
+            actionMessage = $"Error resuming project: {ex.Message}";
+            actionSuccess = false;
+        }
+        finally
+        {
+            isResumingProject = false;
+            StateHasChanged();
+        }
     }
 }
