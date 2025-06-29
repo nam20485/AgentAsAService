@@ -1,0 +1,11 @@
+**/*
+!/OrchestratorService.csproj
+!/appsettings.json
+!/appsettings.Development.json
+!/appsettings.Production.json
+!/appsettings.Staging.json
+!/appsettings.Testing.json
+!/Controllers/
+!/Services/
+!/Properties/
+!/Dockerfile
