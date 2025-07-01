@@ -51,6 +51,15 @@ you will work systematically to resolve each comment, one after another,
 * Iterate in this manner until all comments and replies have been addressed.
 * Once all PR comments have been resolved, the stake-holder will approve the PR.
 
+### ⚠️ CRITICAL: Commit Changes Before Merge
+
+**BEFORE the PR is merged upstream, you MUST:**
+1. **Commit all local changes** to the PR branch using `git add .` and `git commit`
+2. **Push changes** to the remote branch using `git push origin <branch-name>`
+3. **Verify changes are in the remote branch** by checking the PR diff or using `git show origin/<branch-name>:<file-path>`
+
+**Failure to commit and push changes will result in permanent loss of all implementation work when the branch is merged and deleted.**
+
 ### Completion
 
 Ask the stake-holder if they want you to merge the PR or if they would like to do so themselves.
