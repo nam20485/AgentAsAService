@@ -3,16 +3,15 @@ FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
 WORKDIR /app
 
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
-WORKDIR /src
 COPY ["AgentService/AgentService.csproj", "AgentService/"]
 COPY ["SharedLib/SharedLib.csproj", "SharedLib/"]
 RUN dotnet restore "AgentService/AgentService.csproj"
-COPY . .
-WORKDIR "/src/AgentService"
-RUN dotnet build "AgentService.csproj" -c Release -o /app/build
+COPY ["AgentService/", "AgentService/"]
+COPY ["SharedLib/", "SharedLib/"]
+RUN dotnet build "AgentService/AgentService.csproj" -c Release -o /app/build
 
 FROM build AS publish
-RUN dotnet publish "AgentService.csproj" -c Release -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "AgentService/AgentService.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
