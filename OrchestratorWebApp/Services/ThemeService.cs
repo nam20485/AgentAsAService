@@ -37,8 +37,9 @@ public class ThemeService : IThemeService
             _currentTheme = string.IsNullOrEmpty(theme) ? "light" : theme;
             return _currentTheme;
         }
-        catch
+        catch (Exception ex)
         {
+            Console.WriteLine($"Error retrieving theme from localStorage: {ex.Message}");
             return "light";
         }
     }
@@ -52,8 +53,9 @@ public class ThemeService : IThemeService
             await _jsRuntime.InvokeVoidAsync("document.documentElement.setAttribute", "data-theme", theme);
             ThemeChanged?.Invoke(theme);
         }
-        catch
+        catch (Exception ex)
         {
+            Console.WriteLine($"Error setting theme in localStorage: {ex.Message}");
             // Handle JS interop errors gracefully
         }
     }

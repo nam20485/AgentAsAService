@@ -90,10 +90,18 @@ public class RepositoryApiService : BaseApiService, IRepositoryService
                     repository.Id = createdRepo.Id;
                 }
             }
+            else
+            {
+                Console.WriteLine($"Failed to create repository in API: {response.StatusCode} - {response.ReasonPhrase}");
+                // Note: For this implementation, we still return the local object for graceful degradation
+                // TODO: Consider returning null or throwing exception based on business requirements
+            }
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            // Return mock repository if API call fails
+            Console.WriteLine($"Error creating repository: {ex.Message}");
+            // Note: For this implementation, we still return the local object for graceful degradation
+            // TODO: Consider returning null or throwing exception based on business requirements
         }
 
         return repository;
@@ -111,10 +119,18 @@ public class RepositoryApiService : BaseApiService, IRepositoryService
             };
 
             var response = await _httpClient.PutAsJsonAsync($"/api/repositories/{repository.Id}", apiRepo, _jsonOptions);
+            if (!response.IsSuccessStatusCode)
+            {
+                Console.WriteLine($"Failed to update repository {repository.Id}: {response.StatusCode} - {response.ReasonPhrase}");
+                // For now, still return the repository object for graceful degradation
+                // TODO: Consider throwing exception or returning error state in future
+            }
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            // Handle error
+            Console.WriteLine($"Error updating repository {repository.Id}: {ex.Message}");
+            // For now, return repository for graceful degradation
+            // TODO: Consider throwing exception or returning error state in future
         }
 
         return repository;
@@ -182,8 +198,14 @@ public class RepositoryApiService : BaseApiService, IRepositoryService
             var segments = uri.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
             return segments.Length > 0 ? segments[0] : "";
         }
-        catch
+        catch (UriFormatException ex)
         {
+            Console.WriteLine($"Failed to parse URL '{url}': {ex.Message}");
+            return "";
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Unexpected error parsing URL '{url}': {ex.Message}");
             return "";
         }
     }
@@ -197,8 +219,14 @@ public class RepositoryApiService : BaseApiService, IRepositoryService
             var segments = uri.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
             return segments.Length > 1 ? segments[1].Replace(".git", "") : "";
         }
-        catch
+        catch (UriFormatException ex)
         {
+            Console.WriteLine($"Failed to parse URL '{url}': {ex.Message}");
+            return "";
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Unexpected error parsing URL '{url}': {ex.Message}");
             return "";
         }
     }
@@ -350,7 +378,7 @@ public class SessionApiService : BaseApiService, ISessionService
                 Id = "session-1",
                 ProjectId = "project-1",
                 AgentId = "agent-1",
-                Status = SessionStatus.Active,
+                Status = SessionStatus.Running,
                 StartedAt = DateTime.UtcNow.AddMinutes(-30),
                 Activity = "Designing user interface components",
                 Progress = 45,
