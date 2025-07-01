@@ -5,17 +5,17 @@ EXPOSE 80
 EXPOSE 443
 
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
-WORKDIR /src
+RUN apt-get update && apt-get install -y python3
 COPY ["OrchestratorWebApp/OrchestratorWebApp.csproj", "OrchestratorWebApp/"]
 # Restore the WebAssembly workload
 RUN dotnet workload restore "OrchestratorWebApp/OrchestratorWebApp.csproj"
 RUN dotnet restore "OrchestratorWebApp/OrchestratorWebApp.csproj"
-COPY . .
-WORKDIR "/src/OrchestratorWebApp"
-RUN dotnet build "OrchestratorWebApp.csproj" -c Release -o /app/build
+COPY ["OrchestratorWebApp/", "OrchestratorWebApp/"]
+COPY ["SharedLib/", "SharedLib/"]
+RUN dotnet build "OrchestratorWebApp/OrchestratorWebApp.csproj" -c Release -o /app/build
 
 FROM build AS publish
-RUN dotnet publish "OrchestratorWebApp.csproj" -c Release -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "OrchestratorWebApp/OrchestratorWebApp.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
