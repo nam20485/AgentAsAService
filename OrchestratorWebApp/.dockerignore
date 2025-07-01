@@ -1,0 +1,14 @@
+**/*
+!/OrchestratorWebApp.csproj
+!/appsettings.json
+!/appsettings.Development.json
+!/_Imports.razor
+!/App.razor
+!/Components/
+!/Layout/
+!/Models/
+!/Pages/
+!/Properties/
+!/Services/
+!/wwwroot/
+!/Dockerfile

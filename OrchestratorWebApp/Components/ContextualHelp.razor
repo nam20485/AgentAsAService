@@ -1,0 +1,243 @@
+@* Contextual Help Component *@
+
+@if (!string.IsNullOrEmpty(HelpText) || HelpContent != null)
+{
+    <div class="contextual-help @ContainerClass">
+        @if (Type == HelpType.Tooltip)
+        {
+            <span class="help-trigger" 
+                  data-bs-toggle="tooltip" 
+                  data-bs-placement="@TooltipPosition" 
+                  title="@HelpText">
+                <i class="fas fa-question-circle help-icon"></i>
+            </span>
+        }
+        else if (Type == HelpType.Popover)
+        {
+            <button type="button" 
+                    class="btn btn-link help-trigger p-0" 
+                    data-bs-toggle="popover" 
+                    data-bs-placement="@TooltipPosition"
+                    data-bs-content="@HelpText"
+                    data-bs-title="@Title">
+                <i class="fas fa-info-circle help-icon"></i>
+            </button>
+        }
+        else if (Type == HelpType.Inline)
+        {
+            <div class="help-inline">
+                <div class="help-toggle" @onclick="ToggleHelp">
+                    <i class="fas @(isExpanded ? "fa-chevron-down" : "fa-chevron-right") me-1"></i>
+                    <span class="help-label">@(string.IsNullOrEmpty(Title) ? "Help" : Title)</span>
+                </div>
+                @if (isExpanded)
+                {
+                    <div class="help-content">
+                        @if (HelpContent != null)
+                        {
+                            @HelpContent
+                        }
+                        else
+                        {
+                            <p>@HelpText</p>
+                        }
+                    </div>
+                }
+            </div>
+        }
+        else if (Type == HelpType.Card)
+        {
+            <div class="help-card">
+                <div class="help-card-header">
+                    <i class="fas fa-lightbulb me-2"></i>
+                    <strong>@(string.IsNullOrEmpty(Title) ? "Quick Tip" : Title)</strong>
+                    @if (Dismissible)
+                    {
+                        <button type="button" class="btn-close help-dismiss" @onclick="DismissHelp"></button>
+                    }
+                </div>
+                <div class="help-card-body">
+                    @if (HelpContent != null)
+                    {
+                        @HelpContent
+                    }
+                    else
+                    {
+                        <p>@HelpText</p>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+}
+
+<style>
+    .contextual-help {
+        display: inline-block;
+    }
+    
+    .help-icon {
+        color: var(--color-primary-600);
+        cursor: pointer;
+        font-size: 0.9rem;
+        transition: color var(--transition-fast);
+    }
+    
+    .help-icon:hover {
+        color: var(--color-primary-700);
+    }
+    
+    [data-theme="dark"] .help-icon {
+        color: var(--color-primary-400);
+    }
+    
+    [data-theme="dark"] .help-icon:hover {
+        color: var(--color-primary-300);
+    }
+    
+    .help-trigger {
+        border: none;
+        background: none;
+        padding: 0;
+        margin-left: var(--spacing-1);
+    }
+    
+    /* Inline Help */
+    .help-inline {
+        margin-top: var(--spacing-2);
+    }
+    
+    .help-toggle {
+        cursor: pointer;
+        color: var(--color-primary-600);
+        font-size: var(--font-size-sm);
+        font-weight: var(--font-weight-medium);
+        transition: color var(--transition-fast);
+    }
+    
+    .help-toggle:hover {
+        color: var(--color-primary-700);
+    }
+    
+    [data-theme="dark"] .help-toggle {
+        color: var(--color-primary-400);
+    }
+    
+    [data-theme="dark"] .help-toggle:hover {
+        color: var(--color-primary-300);
+    }
+    
+    .help-content {
+        margin-top: var(--spacing-2);
+        padding: var(--spacing-3);
+        background: var(--color-secondary-50);
+        border: 1px solid var(--color-secondary-200);
+        border-radius: var(--border-radius);
+        font-size: var(--font-size-sm);
+        color: var(--color-secondary-700);
+    }
+    
+    [data-theme="dark"] .help-content {
+        background: var(--color-secondary-800);
+        border-color: var(--color-secondary-700);
+        color: var(--color-secondary-300);
+    }
+    
+    /* Help Card */
+    .help-card {
+        background: var(--color-primary-50);
+        border: 1px solid var(--color-primary-200);
+        border-radius: var(--border-radius);
+        margin: var(--spacing-3) 0;
+        font-size: var(--font-size-sm);
+    }
+    
+    [data-theme="dark"] .help-card {
+        background: var(--color-secondary-800);
+        border-color: var(--color-primary-700);
+    }
+    
+    .help-card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: var(--spacing-2) var(--spacing-3);
+        background: var(--color-primary-100);
+        border-bottom: 1px solid var(--color-primary-200);
+        border-radius: var(--border-radius) var(--border-radius) 0 0;
+        color: var(--color-primary-800);
+    }
+    
+    [data-theme="dark"] .help-card-header {
+        background: var(--color-secondary-700);
+        border-bottom-color: var(--color-primary-700);
+        color: var(--color-primary-200);
+    }
+    
+    .help-card-body {
+        padding: var(--spacing-3);
+        color: var(--color-primary-700);
+    }
+    
+    [data-theme="dark"] .help-card-body {
+        color: var(--color-primary-300);
+    }
+    
+    .help-card-body p:last-child {
+        margin-bottom: 0;
+    }
+    
+    .help-dismiss {
+        background: none;
+        border: none;
+        color: var(--color-primary-600);
+        font-size: 0.8rem;
+        opacity: 0.7;
+        transition: opacity var(--transition-fast);
+    }
+    
+    .help-dismiss:hover {
+        opacity: 1;
+    }
+</style>
+
+@code {
+    [Parameter] public HelpType Type { get; set; } = HelpType.Tooltip;
+    [Parameter] public string HelpText { get; set; } = "";
+    [Parameter] public RenderFragment? HelpContent { get; set; }
+    [Parameter] public string Title { get; set; } = "";
+    [Parameter] public string TooltipPosition { get; set; } = "top";
+    [Parameter] public bool Dismissible { get; set; } = false;
+    [Parameter] public string ContainerClass { get; set; } = "";
+    [Parameter] public EventCallback OnDismiss { get; set; }
+
+    private bool isExpanded = false;
+    private bool isDismissed = false;
+
+    private void ToggleHelp()
+    {
+        isExpanded = !isExpanded;
+    }
+
+    private async Task DismissHelp()
+    {
+        isDismissed = true;
+        if (OnDismiss.HasDelegate)
+        {
+            await OnDismiss.InvokeAsync();
+        }
+    }
+
+    protected override bool ShouldRender()
+    {
+        return !isDismissed;
+    }
+
+    public enum HelpType
+    {
+        Tooltip,
+        Popover,
+        Inline,
+        Card
+    }
+}
