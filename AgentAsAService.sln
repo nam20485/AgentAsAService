@@ -24,8 +24,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ai_instructions_modules", "
 		ai_instruction_modules\ai-terminal-management.md = ai_instruction_modules\ai-terminal-management.md
 		ai_instruction_modules\ai-testing-validation.md = ai_instruction_modules\ai-testing-validation.md
 		ai_instruction_modules\ai-tools-config.md = ai_instruction_modules\ai-tools-config.md
+		ai_instruction_modules\ai-workflow-assignments.md = ai_instruction_modules\ai-workflow-assignments.md
 		ai_instruction_modules\ai-workflow-config.md = ai_instruction_modules\ai-workflow-config.md
-		ai_instruction_modules\ai-task-based-workflow.md = ai_instruction_modules\ai-task-based-workflow.md
+		ai_instruction_modules\ai-workflow-roles.md = ai_instruction_modules\ai-workflow-roles.md
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{9C6578E7-E4FE-79BB-1635-F363CC1E80DD}"
@@ -65,6 +66,11 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "collaborator", "collaborator", "{C98000FD-ADD1-4720-8CA7-9698A027F963}"
 	ProjectSection(SolutionItems) = preProject
 		ai_instruction_modules\ai-workflow-roles\collaborator\ai-workflow-role.md = ai_instruction_modules\ai-workflow-roles\collaborator\ai-workflow-role.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ai-workflow-assignments", "ai-workflow-assignments", "{0B1A797D-2AB9-0CCF-7669-732949168D82}"
+	ProjectSection(SolutionItems) = preProject
+		ai_instruction_modules\ai-workflow-assignments\pr-approval-and-merge.md = ai_instruction_modules\ai-workflow-assignments\pr-approval-and-merge.md
 	EndProjectSection
 EndProject
 Global
@@ -229,6 +235,7 @@ Global
 		{02EA681E-C7D8-13C7-8484-4AC65E1B71E8} = {B7086302-1D0A-D58E-FE97-DE1108A1BF0C}
 		{2623ADE3-3B43-4CE7-B418-8BAF7650C70E} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{C98000FD-ADD1-4720-8CA7-9698A027F963} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{0B1A797D-2AB9-0CCF-7669-732949168D82} = {B7086302-1D0A-D58E-FE97-DE1108A1BF0C}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {830F004B-89A8-43C1-98E5-A5AE0F3F1FB4}

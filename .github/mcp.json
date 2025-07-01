@@ -95,56 +95,150 @@
 				]
 			}
 		},
-		// "gcloud": {
-		// 	"id": "gcloud",
-		// 	"name": "gcloud",
-		// 	"config": {
-		// 		"type": "stdio",
-		// 		"command": "gcloud",
-		// 		"args": [],
-		// 		"env": {}
-		// 	}
-		// },
-		// "firebase": {
-		// 	"id": "firebase",
-		// 	"name": "firebase",
-		// 	"config": {
-		// 		"type": "stdio",
-		// 		"command": "firebase",
-		// 		"args": [],
-		// 		"env": {}
-		// 	}
-		// },
-		// "git": {
-		// 	"id": "git",
-		// 	"name": "git",
-		// 	"config": {
-		// 		"type": "stdio",
-		// 		"command": "git.exe",
-		// 		"args": [],
-		// 		"env": {}
-		// 	}
-		// },
-		// "dotnet": {
-		// 	"id": "dotnet",
-		// 	"name": "dotnet",
-		// 	"config": {
-		// 		"type": "stdio",
-		// 		"command": "dotnet",
-		// 		"args": [],
-		// 		"env": {}
-		// 	}
-		// },
-		// "docker": {
-		// 	"id": "docker",
-		// 	"name": "docker",
-		// 	"config": {
-		// 		"type": "stdio",
-		// 		"command": "docker",
-		// 		"args": [],
-		// 		"env": {}
-		// 	}
-		// }
+		"gcloud": {
+			"id": "gcloud",
+			"name": "gcloud",
+			"config": {
+				"type": "stdio",
+				"command": "gcloud",
+				"args": [],
+				"env": {}
+			}
+		},
+		"firebase-cli": {
+			"id": "firebase-cli",
+			"name": "firebase-cli",
+			"config": {
+				"type": "stdio",
+				"command": "firebase",
+				"args": [],
+				"env": {
+					"FIREBASE_PROJECT": "agentasaservice-dev"
+				}
+			}
+		},
+		"git": {
+			"id": "git",
+			"name": "git",
+			"config": {
+				"type": "stdio",
+				"command": "git.exe",
+				"args": [],
+				"env": {}
+			}
+		},
+		"dotnet": {
+			"id": "dotnet",
+			"name": "dotnet",
+			"config": {
+				"type": "stdio",
+				"command": "dotnet",
+				"args": [],
+				"env": {}
+			}
+		},
+		"docker": {
+			"id": "docker",
+			"name": "docker",
+			"config": {
+				"type": "stdio",
+				"command": "docker",
+				"args": [],
+				"env": {}
+			}
+		},
+		"gitlab": {
+			"id": "gitlab",
+			"name": "gitlab",
+			"config": {
+				"type": "stdio",
+				"command": "npx",
+				"args": [
+					"-y",
+					"@modelcontextprotocol/server-gitlab"
+				]
+			}
+		},
+		"cloudflare-observability": {
+			"id": "cloudflare-observability",
+			"name": "cloudflare-observability",
+			"config": {
+				"type": "stdio",
+				"command": "npx",
+				"args": [
+					"mcp-remote",
+					"https://observability.mcp.cloudflare.com/sse"
+				]
+			}
+		},
+		"cloudflare-bindings": {
+			"id": "cloudflare-bindings",
+			"name": "cloudflare-bindings",
+			"config": {
+				"type": "stdio",
+				"command": "npx",
+				"args": [
+					"mcp-remote",
+					"https://bindings.mcp.cloudflare.com/sse"
+				]
+			}
+		},
+		"github-cli": {
+			"id": "github-cli",
+			"name": "github-cli",
+			"config": {
+				"type": "stdio",
+				"command": "gh",
+				"args": [],
+				"env": {}
+			}
+		},
+		"puppeteer": {
+			"id": "puppeteer",
+			"name": "puppeteer",
+			"config": {
+				"type": "stdio",
+				"command": "npx",
+				"args": [
+					"-y",
+					"@modelcontextprotocol/server-puppeteer"
+				],
+				"env": {}
+			}
+		},
+		"playwright": {
+			"id": "playwright",
+			"name": "playwright",
+			"config": {
+				"type": "stdio",
+				"command": "npx",
+				"args": [
+					"-y",
+					"@executeautomation/playwright-mcp-server"
+				],
+				"env": {}
+			}
+		},
+		"web-browser": {
+			"id": "web-browser",
+			"name": "web-browser",
+			"config": {
+				"type": "stdio",
+				"command": "uv",
+				"args": [
+					"tool",
+					"run",
+					"web-browser-mcp-server"
+				]
+			}
+		}
 	},
-	"inputs": []
+	"inputs": [
+		{
+			"id": "github_token",
+			"description": "GitHub personal access token",
+			"type": "promptString",
+			"password": true
+		}
+	]
 }
