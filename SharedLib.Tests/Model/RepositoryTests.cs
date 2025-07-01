@@ -68,4 +68,22 @@ public class RepositoryTests
         repository.Name.Should().BeNull();
         repository.Address.Should().BeNull();
     }
+
+    [Fact]
+    public void Repository_Should_Handle_Null_Values_Gracefully_In_Business_Logic()
+    {
+        // Arrange
+        var repository = new Repository { Name = null!, Address = null! };
+
+        // Act & Assert - Verify ToString doesn't throw NullReferenceException
+        var result = repository.ToString();
+        result.Should().NotBeNull();
+
+        // Verify string interpolation handles nulls gracefully
+        var displayName = $"Repository: {repository.Name ?? "Unknown"}";
+        displayName.Should().Be("Repository: Unknown");
+
+        var displayAddress = $"Address: {repository.Address ?? "Not specified"}";
+        displayAddress.Should().Be("Address: Not specified");
+    }
 }

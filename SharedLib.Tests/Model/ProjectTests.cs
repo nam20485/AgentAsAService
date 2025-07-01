@@ -9,7 +9,10 @@ public class ProjectTests
     [Fact]
     public void Project_Should_Initialize_With_Default_Values()
     {
-        // Arrange & Act
+        // Arrange
+        var now = DateTime.UtcNow;
+
+        // Act
         var project = new Project();
 
         // Assert
@@ -17,8 +20,8 @@ public class ProjectTests
         project.Name.Should().Be(string.Empty);
         project.OrchestratorId.Should().Be(string.Empty);
         project.Repository.Should().NotBeNull();
-        project.CreatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
-        project.UpdatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
+        project.CreatedAt.Should().BeCloseTo(now, TimeSpan.FromSeconds(1));
+        project.UpdatedAt.Should().BeCloseTo(now, TimeSpan.FromSeconds(1));
     }
 
     [Fact]
@@ -63,7 +66,7 @@ public class ProjectTests
     public void Project_Should_Handle_Empty_Name_Values(string? name)
     {
         // Arrange & Act
-        var project = new Project { Name = name };
+        var project = new Project { Name = name! };
 
         // Assert
         project.Name.Should().Be(name);

@@ -45,6 +45,7 @@ you will work systematically to resolve each comment, one after another,
 1. If the stake-holder reply contains approval for a previously submitted plan, then you will be able to implement the changes now.
 1. If the stake-holder reply contains a request for changes, then you will need to review the comment and ensure that you understand the feedback provided.
 1. Address the feedback and update your implementation accordingly.
+1. **After implementing each approved plan, leave a comment reply to the preceding approval comment informing stakeholders that you have completed implementing the indicated plan. Include details of what was changed and confirm the implementation status.**
 1. Communicate your changes and seek further clarification if needed.
 
 * Iterate in this manner until all comments and replies have been addressed.
