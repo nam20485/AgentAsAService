@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
 using OrchestratorWebApp;
+using OrchestratorWebApp.Services;
 using Radzen;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
@@ -59,5 +60,14 @@ if (isDevelopment)
 
 // Register Radzen components
 builder.Services.AddRadzenComponents();
+
+// Register project management services
+builder.Services.AddScoped<IAgentService, AgentApiService>();
+builder.Services.AddScoped<ITeamService, TeamApiService>();
+builder.Services.AddScoped<IProjectService, ProjectApiService>();
+builder.Services.AddScoped<IRepositoryService, RepositoryApiService>();
+builder.Services.AddScoped<ISpecificationService, SpecificationApiService>();
+builder.Services.AddScoped<ISessionService, SessionApiService>();
+builder.Services.AddScoped<IThemeService, OrchestratorWebApp.Services.ThemeService>();
 
 await builder.Build().RunAsync();
