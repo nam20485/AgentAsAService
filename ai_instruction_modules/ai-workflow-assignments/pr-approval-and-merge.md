@@ -45,10 +45,20 @@ you will work systematically to resolve each comment, one after another,
 1. If the stake-holder reply contains approval for a previously submitted plan, then you will be able to implement the changes now.
 1. If the stake-holder reply contains a request for changes, then you will need to review the comment and ensure that you understand the feedback provided.
 1. Address the feedback and update your implementation accordingly.
+1. **After implementing each approved plan, leave a comment reply to the preceding approval comment informing stakeholders that you have completed implementing the indicated plan. Include details of what was changed and confirm the implementation status.**
 1. Communicate your changes and seek further clarification if needed.
 
 * Iterate in this manner until all comments and replies have been addressed.
 * Once all PR comments have been resolved, the stake-holder will approve the PR.
+
+### ⚠️ CRITICAL: Commit Changes Before Merge
+
+**BEFORE the PR is merged upstream, you MUST:**
+1. **Commit all local changes** to the PR branch using `git add .` and `git commit`
+2. **Push changes** to the remote branch using `git push origin <branch-name>`
+3. **Verify changes are in the remote branch** by checking the PR diff or using `git show origin/<branch-name>:<file-path>`
+
+**Failure to commit and push changes will result in permanent loss of all implementation work when the branch is merged and deleted.**
 
 ### Completion
 

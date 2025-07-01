@@ -8,7 +8,7 @@
     <ExcludeByFile>**/bin/**/*;**/obj/**/*;**/*AssemblyInfo.cs</ExcludeByFile>
     <ExcludeByAttribute>Obsolete,GeneratedCodeAttribute,CompilerGeneratedAttribute</ExcludeByAttribute>
     <Include>[*]*</Include>
-    <Exclude>[*.Tests*]*,[xunit.*]*,[FluentAssertions.*]*,[Moq.*]*</Exclude>
+    <Exclude>[*.Tests]*,[*.Test]*,[xunit.*]*,[FluentAssertions.*]*,[Moq.*]*</Exclude>
     <ThresholdType>line</ThresholdType>
     <Threshold>0</Threshold>
     <ThresholdStat>total</ThresholdStat>
