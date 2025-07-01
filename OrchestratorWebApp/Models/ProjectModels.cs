@@ -10,7 +10,7 @@ public class Agent
     public string Id { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
     public AgentType Type { get; set; } = AgentType.Collaborator;
-    public string Status { get; set; } = "Inactive";
+    public AgentStatus Status { get; set; } = AgentStatus.Inactive;
     public List<string> Capabilities { get; set; } = new();
     public Dictionary<string, object> Configuration { get; set; } = new();
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
@@ -29,6 +29,18 @@ public enum AgentType
 }
 
 /// <summary>
+/// Agent status states
+/// </summary>
+public enum AgentStatus
+{
+    Inactive,
+    Active,
+    Busy,
+    Error,
+    Offline
+}
+
+/// <summary>
 /// Enhanced Team model with validation and workflow support
 /// </summary>
 public class Team
@@ -44,8 +56,7 @@ public class Team
     /// Validates team composition (1 orchestrator + N collaborators)
     /// </summary>
     public bool IsValidComposition => 
-        Members.Count(m => m.Type == AgentType.Orchestrator) == 1 &&
-        Members.Count(m => m.Type == AgentType.Collaborator) >= 0;
+        Members.Count(m => m.Type == AgentType.Orchestrator) == 1;
     
     /// <summary>
     /// Gets the orchestrator agent for this team
@@ -55,7 +66,7 @@ public class Team
     /// <summary>
     /// Gets all collaborator agents for this team
     /// </summary>
-    public List<Agent> Collaborators => Members.Where(m => m.Type == AgentType.Collaborator).ToList();
+    public IEnumerable<Agent> Collaborators => Members.Where(m => m.Type == AgentType.Collaborator);
 }
 
 /// <summary>
@@ -147,7 +158,8 @@ public class GitHubRepository
         !string.IsNullOrEmpty(Owner) &&
         !string.IsNullOrEmpty(Url) &&
         Uri.IsWellFormedUriString(Url, UriKind.Absolute) &&
-        Url.Contains("github.com");
+        Uri.TryCreate(Url, UriKind.Absolute, out var uri) &&
+        (uri.Host == "github.com" || uri.Host.EndsWith(".github.com"));
 }
 
 /// <summary>
@@ -223,9 +235,7 @@ public enum SessionStatus
     Paused,
     Completed,
     Failed,
-    Terminated,
-    Active,
-    Stopped
+    Terminated
 }
 
 /// <summary>

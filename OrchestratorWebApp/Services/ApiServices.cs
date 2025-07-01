@@ -34,8 +34,9 @@ public abstract class BaseApiService
             }
             return default;
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            Console.WriteLine($"Error in GET request to {endpoint}: {ex.Message}");
             return default;
         }
     }
@@ -52,8 +53,9 @@ public abstract class BaseApiService
             }
             return default;
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            Console.WriteLine($"Error in POST request to {endpoint}: {ex.Message}");
             return default;
         }
     }
@@ -70,8 +72,9 @@ public abstract class BaseApiService
             }
             return default;
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            Console.WriteLine($"Error in PUT request to {endpoint}: {ex.Message}");
             return default;
         }
     }
@@ -83,8 +86,9 @@ public abstract class BaseApiService
             var response = await _httpClient.DeleteAsync(endpoint);
             return response.IsSuccessStatusCode;
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            Console.WriteLine($"Error in DELETE request to {endpoint}: {ex.Message}");
             return false;
         }
     }
@@ -107,7 +111,7 @@ public class AgentApiService : BaseApiService, IAgentService
                 Id = "agent-1", 
                 Name = "UI Designer Agent", 
                 Type = AgentType.Collaborator,
-                Status = "Active", 
+                Status = AgentStatus.Active, 
                 Capabilities = new List<string> { "UI Design", "Figma", "Prototyping" },
                 LastActivity = DateTime.UtcNow.AddMinutes(-15)
             },
@@ -116,7 +120,7 @@ public class AgentApiService : BaseApiService, IAgentService
                 Id = "orchestrator-1", 
                 Name = "Main Orchestrator", 
                 Type = AgentType.Orchestrator,
-                Status = "Active", 
+                Status = AgentStatus.Active, 
                 Capabilities = new List<string> { "Project Management", "Task Planning", "Team Coordination" },
                 LastActivity = DateTime.UtcNow.AddMinutes(-2)
             }
@@ -136,7 +140,7 @@ public class AgentApiService : BaseApiService, IAgentService
             Id = Guid.NewGuid().ToString(),
             Name = name,
             Type = AgentType.Orchestrator,
-            Status = "Inactive",
+            Status = AgentStatus.Inactive,
             Capabilities = new List<string> { "Project Management", "Task Planning", "Team Coordination" },
             Configuration = configuration ?? new Dictionary<string, object>(),
             CreatedAt = DateTime.UtcNow,
@@ -157,7 +161,7 @@ public class AgentApiService : BaseApiService, IAgentService
             Id = Guid.NewGuid().ToString(),
             Name = name,
             Type = AgentType.Collaborator,
-            Status = "Inactive",
+            Status = AgentStatus.Inactive,
             Capabilities = capabilities,
             Configuration = configuration ?? new Dictionary<string, object>(),
             CreatedAt = DateTime.UtcNow,
@@ -296,14 +300,22 @@ public class TeamApiService : BaseApiService, ITeamService
     {
         // TODO: Implement API call
         var team = await GetTeamAsync(teamId);
-        return team ?? new Team();
+        if (team == null)
+        {
+            throw new ArgumentException($"Team with ID '{teamId}' not found.", nameof(teamId));
+        }
+        return team;
     }
 
     public async Task<Team> RemoveAgentFromTeamAsync(string teamId, string agentId)
     {
         // TODO: Implement API call
         var team = await GetTeamAsync(teamId);
-        return team ?? new Team();
+        if (team == null)
+        {
+            throw new ArgumentException($"Team with ID '{teamId}' not found.", nameof(teamId));
+        }
+        return team;
     }
 
     public async Task<bool> ValidateTeamCompositionAsync(string teamId)
@@ -431,29 +443,35 @@ public class ProjectApiService : BaseApiService, IProjectService
     {
         // TODO: Implement API call
         var project = await GetProjectAsync(projectId);
-        if (project != null)
+        if (project == null)
         {
-            project.Repository = repository;
+            throw new ArgumentException($"Project with ID '{projectId}' not found.", nameof(projectId));
         }
-        return project ?? new Project();
+        project.Repository = repository;
+        return project;
     }
 
     public async Task<Project> AssignTeamAsync(string projectId, string teamId)
     {
         // TODO: Implement API call
         var project = await GetProjectAsync(projectId);
-        return project ?? new Project();
+        if (project == null)
+        {
+            throw new ArgumentException($"Project with ID '{projectId}' not found.", nameof(projectId));
+        }
+        return project;
     }
 
     public async Task<Project> SetSpecificationAsync(string projectId, ProjectSpecification specification)
     {
         // TODO: Implement API call
         var project = await GetProjectAsync(projectId);
-        if (project != null)
+        if (project == null)
         {
-            project.Specification = specification;
+            throw new ArgumentException($"Project with ID '{projectId}' not found.", nameof(projectId));
         }
-        return project ?? new Project();
+        project.Specification = specification;
+        return project;
     }
 
     public async Task<bool> ValidateProjectConfigurationAsync(string projectId)
@@ -513,8 +531,14 @@ public class ProjectApiService : BaseApiService, IProjectService
             var segments = uri.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
             return segments.Length > 0 ? segments[0] : "";
         }
-        catch
+        catch (UriFormatException ex)
         {
+            Console.WriteLine($"Failed to parse URL '{url}': {ex.Message}");
+            return "";
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Unexpected error parsing URL '{url}': {ex.Message}");
             return "";
         }
     }
